@@ -1,4 +1,4 @@
-# detelectro-1.0
+# Detelectro
 
 This repository contains a software I developed following my MSc in Physics Engineering, where we applied Quantum Monte Carlo (QMC) to a problem of interacting fermions.
 If you are interested, my thesis is available at
