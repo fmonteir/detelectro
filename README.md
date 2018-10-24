@@ -97,10 +97,10 @@ We recommend that you set it to 0 for other options to easily track down the dir
 
 The results of the simulation will be saved in a directory named _temp-data_
 and will be deleted once you run _make clean_. To save them enter the directory
-_results_
+_examples_
 
 
-cd results
+cd examples
 
 
 and run
@@ -111,8 +111,8 @@ python3 save-simulation-data.py
 (you need version 3 of Python and _numpy_)
 
 
-In the _results/plot-src_ directory there are python scripts that use *matplotlib*
-to plot the results of the simulations saved in _results/data_
+In the _examples/plot-src_ directory there are python scripts that use *matplotlib*
+to plot the results of the simulations saved in _examples/data_
 
 In my MSc project, we started by focusing on Molybdenum disulfide, MoS2.
 This case of particular interest is obtained when one sets _geom=13_.
