@@ -17,6 +17,7 @@
 #		(11)	2D Honeycomb Strained Nanoribbon
 #		(12)	2D Minimal model of a periodic TMD sample (Liu2013)
 #		(13)	2D Minimal model of a TMD nanoribbon (Liu2013)
+#		(14)	2D Minimal model of a TMD nanoribbon with Strain (Liu2013)
 
 #	DEFAULT PARAMETERS
 
@@ -31,13 +32,13 @@ green_afresh_freq=4
 # Toggle prints
 verbose=0
 # Choose source file
-source=mainEqTime
+source=main_equal_time
 
 # Set parameters of the simulation here.
 CXX = g++ -DNSITES=$(nsites) -DDT_INV=$(dt_inv) -DBETA=$(beta)\
  -DGREEN_AFRESH_FREQ=$(green_afresh_freq) -DVERBOSE=$(verbose)
 
-include_dir = ./includes
+include_dir=./includes
 
 CXXFLAGS = -Wall -g -O3 -std=c++11 -I$(include_dir)
 
@@ -99,6 +100,10 @@ mu is the chemical potential (in particle-hole symmetric form, mu -> mu + U /2 )
 	 (Liu et al., Phys Rev B 88, 085433, 2013 )\
 	 nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites."
 	@echo ""
+	@echo "(14)		2D Minimal model of a TMD nanoribbon with strain\
+	 (Liu et al., Phys Rev B 88, 085433, 2013 )\
+	 nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites."
+	@echo ""
 	@echo "The Ny parameter is only meaningful\
 	 for geometry options 5, 6, 8, 10, 11, 12 and 13."
 	@echo ""
@@ -111,7 +116,5 @@ src/$(source).o: src/$(source).cpp $(include_dir)/matrixgen.h\
 	 $(include_dir)/green.h $(include_dir)/QDT.h $(include_dir)/TDQ.h
 
 clean:
-	rm -f simulation src/mainSignProblem.o src/mainEqTime.o src/mainUneqTime.o\
-	 src/mainmainMatrixBlowUp.o src/mainAutoCorrSignOscillation.o \
-	 src/mainSz.o
+	rm -f simulation src/*.o
 	rm -f ./temp-data/*

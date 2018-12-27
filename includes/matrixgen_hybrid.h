@@ -2,7 +2,7 @@
 //  matrixgen.h
 //
 //
-//  Created by Francisco Brito on 09/05/2018.
+//  Created by Francisco Brito on 26/12/2018.
 //
 
 #ifndef matrixgen_h

@@ -1,5 +1,5 @@
 //
-//  mainTMDoptimized.cpp
+//  mainEqSz.cpp
 //
 //
 //  Created by Francisco Brito on 19/10/2018.
@@ -53,7 +53,7 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
 {
     //  Normalize to mean sign
     nEl /= meanSign; SiSjZ /= meanSign;
-    nElSq /= fabs(meanSign); SiSjZSq /= fabs(meanSign);
+    nElSq /= meanSign; SiSjZSq /= meanSign;
 
     Eigen::IOFormat CleanFmt(10, 0, ", ", "\n", "", "");
 
@@ -113,11 +113,14 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
         file2 << std::left << std::setw(50) << "Average sign,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << meanSign << '\n';
+        file2 << std::left << std::setw(50) << "d sign,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << sqrt( 1 - pow(meanSign, 2) ) / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
         file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
-        file3 << std::setprecision(10) << SiSjZ.format(CleanFmt) << '\n';
+        file3 << std::setprecision(20) << SiSjZ.format(CleanFmt) << '\n';
         file4 << std::left << std::setw(50) << "d<Sz_i Sz_j >" << '\n';
         file4 <<
-         std::setprecision(10) << ( ( SiSjZSq - SiSjZ.unaryExpr(&matSq) )
+         std::setprecision(20) << ( ( SiSjZSq - SiSjZ.unaryExpr(&matSq) )
          .unaryExpr(&matSqrt) / sqrt( ( (sweep - W) / A - 1 ) ) )
          .format(CleanFmt) << '\n';
     }

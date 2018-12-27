@@ -47,23 +47,23 @@
 #include "green.h"
 
 void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
- double nUp_nDw, double nUp_nDwSq, double Hkin,
+ double nUp_nDw, double nUp_nDwSq, double zzAFstFactor, double zzAFstFactorSq, double Hkin,
  double HkinSq, double U, int nSites, double dt, double beta, int L, double t,
  double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights,
- Eigen::MatrixXd SiSjZ, Eigen::MatrixXd SiSjZSq)
+ Eigen::MatrixXd SiSjZ, Eigen::MatrixXd SiSjZSq, Eigen::MatrixXd GreenUp,
+ Eigen::MatrixXd GreenUpSq, Eigen::MatrixXd GreenDown, Eigen::MatrixXd GreenDownSq)
 {
     //  Normalize to mean sign
-    nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign;
-    Hkin /= meanSign;
-    nElSq /= meanSign; nUp_nDwSq /= meanSign; SiSjZSq /= meanSign;
-    HkinSq /= meanSign;
+    nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign; zzAFstFactor /= meanSign;
+    Hkin /= meanSign; GreenUp /= meanSign; GreenDown /= meanSign;
+    nElSq /= meanSign; nUp_nDwSq /= meanSign; SiSjZSq /= meanSign; zzAFstFactorSq /= meanSign;
+    HkinSq /= meanSign; GreenUpSq /= meanSign; GreenDownSq /= meanSign;
 
     Eigen::IOFormat CleanFmt(10, 0, ", ", "\n", "", "");
 
     if (VERBOSE == 1)
     {
         std::cout << "Writing results" << std::endl << std::endl;
-        std::cout << "<s>: " << meanSign << std::endl << std::endl;
         std::cout << "ds / <s>: " << sqrt( 1 - pow(meanSign, 2) )
          / sqrt( ( (sweep - W) / A - 1 ) ) / meanSign
           << std::endl << std::endl;
@@ -73,12 +73,22 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
         std::cout << "nUp_nDw: " << nUp_nDw << " +- " <<
          sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (sweep - W) / A - 1 ) )
           << std::endl << std::endl;
+        std::cout << "< m^2 >: " << nEl - 2 * nUp_nDw << " +- " <<
+         (nEl - 2 * nUp_nDw) * ( sqrt( nElSq - pow(nEl, 2) )
+          / sqrt( ( (sweep - W) / A - 1 ) ) / nEl
+         + 2 * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) /
+          sqrt( ( (sweep - W) / A - 1 ) ) / nUp_nDw )
+           << std::endl << std::endl;
         std::cout << "Hkin: " << Hkin << " +- " <<
          sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( ( (sweep - W) / A - 1 ) )
           << std::endl << std::endl;
         std::cout << "Hint: " << U * nUp_nDw << " +- " <<
          U * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) )
           / sqrt( ( (sweep - W) / A - 1 ) ) << std::endl << std::endl;
+        std::cout << "E: " << Hkin + U * nUp_nDw - mu * nEl << " +- " <<
+         sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( ( (sweep - W) / A - 1 ) ) +
+         U * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) )
+         / sqrt( ( (sweep - W) / A - 1 ) ) << std::endl << std::endl;
     }
 
 
@@ -86,27 +96,32 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
     std::ofstream file0("temp-data/simulationParameters.csv");
     if (file0.is_open())
     {
-      file0 << "Number of sites NSITES," << NSITES << '\n';
-      file0 << "Trotter Error dt," << dt << '\n';
-      file0 << "Inverse Temperature BETA," << BETA << '\n';
-      file0 << "Number of Imaginary-time Slices L," << L << '\n';
-      file0 << "Hopping Normalization t," << t << '\n';
-      file0 << "On-site interaction U," << U << '\n';
-      file0 << "mu," << mu << '\n';
-      file0 << "totalMCSweeps," << sweep << '\n';
-      file0 << "Frequency of recomputing G,"
+      file0 << std::left << std::setw(50) << "Number of sites," << NSITES << '\n';
+      file0 << std::left << std::setw(50) << "dt," << dt << '\n';
+      file0 << std::left << std::setw(50) << "beta," << BETA << '\n';
+      file0 << std::left << std::setw(50) << "L," << L << '\n';
+      file0 << std::left << std::setw(50) << "t," << t << '\n';
+      file0 << std::left << std::setw(50) << "U," << U << '\n';
+      file0 << std::left << std::setw(50) << "mu," << mu << '\n';
+      file0 << std::left << std::setw(50) << "totalMCSweeps," << sweep << '\n';
+      file0 << std::left << std::setw(50) << "Frequency of recomputing G,"
         << GREEN_AFRESH_FREQ << '\n';
-      file0 << "Number of multiplied Bs after stabilization," << Lbda << '\n';
-      file0 << "Geometry," << geom << '\n';
-      file0 << "Ny," << Ny << '\n';
+      file0 << std::left << std::setw(50)
+        << "Number of multiplied Bs after stabilization," << Lbda << '\n';
+      file0 << std::left << std::setw(50) << "Geometry," << geom << '\n';
+      file0 << std::left << std::setw(50) << "Ny," << Ny << '\n';
     } file0.close();
     //  STORE MEASUREMENTS
     std::ofstream file1("temp-data/Log-weights.csv");
     std::ofstream file2("temp-data/MeasurementsScalars.csv");
     std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
     std::ofstream file4("temp-data/EqTimeSzCorrelationsError.csv");
-    if ( file1.is_open() and file2.is_open()
-     and file3.is_open() and file4.is_open() )
+    std::ofstream file5("temp-data/GreenUp.csv");
+    std::ofstream file6("temp-data/GreenUpError.csv");
+    std::ofstream file7("temp-data/GreenDown.csv");
+    std::ofstream file8("temp-data/GreenDownError.csv");
+    if ( file1.is_open() and file2.is_open() and file3.is_open() and file4.is_open() and
+      file5.is_open() and file6.is_open() and file7.is_open() and file8.is_open() )
     {
         file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
         for (int s = 0; s < W; s++)
@@ -128,6 +143,22 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
         file2 << std::left << std::setw(50) << "d<n+ n->,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
+        file2 << std::left << std::setw(50) << "ZZ AF Structure Factor,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << zzAFstFactor << '\n';
+        file2 << std::left << std::setw(50) << "d ZZ AF Structure Factor,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << sqrt( zzAFstFactorSq - pow(zzAFstFactor, 2) )
+         / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
+        file2 << std::left << std::setw(50) << "< m^2 >,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nEl - 2 * nUp_nDw << '\n';
+        file2 << std::left << std::setw(50) << "d< m^2 >,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << (nEl - 2 * nUp_nDw) * ( sqrt( nElSq - pow(nEl, 2) )
+         / sqrt( ( (sweep - W) / A - 1 ) ) / nEl
+         + 2 * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) )
+          / sqrt( ( (sweep - W) / A - 1 ) ) / nUp_nDw ) << '\n';
         file2 << std::left << std::setw(50) << "Hkin,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << Hkin << '\n';
@@ -138,6 +169,9 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
         file2 << std::left << std::setw(50) << "Hint,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << U * nUp_nDw << '\n';
+        file2 << std::left << std::setw(50) << "E,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << Hkin + U * nUp_nDw + U / 2 * nEl << '\n';
         file2 << std::left << std::setw(50) << "Average sign,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << meanSign << '\n';
@@ -148,15 +182,37 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
          std::setprecision(10) << ( ( SiSjZSq - SiSjZ.unaryExpr(&matSq) )
          .unaryExpr(&matSqrt) / sqrt( ( (sweep - W) / A - 1 ) ) )
          .format(CleanFmt) << '\n';
+        file5 << std::left << std::setw(50) << "Gup" << '\n';
+        file5 << std::setprecision(10) << GreenUp.format(CleanFmt) << '\n';
+        file6 << std::left << std::setw(50) << "dGup" << '\n';
+        file6 <<
+         std::setprecision(10) << ( ( GreenUpSq - GreenUp.unaryExpr(&matSq) )
+         .unaryExpr(&matSqrt) / sqrt( ( (sweep - W) / A - 1 ) ) )
+         .format(CleanFmt) << '\n';
+        file7 << std::left << std::setw(50) << "Gdown" << '\n';
+        file7 << std::setprecision(10) << GreenDown.format(CleanFmt) << '\n';
+        file8 << std::left << std::setw(50) << "dGdown" << '\n';
+        file8 <<
+         std::setprecision(10) << ( ( GreenDownSq - GreenDown.unaryExpr(&matSq) )
+         .unaryExpr(&matSqrt) / sqrt( ( (sweep - W) / A - 1 ) ) )
+         .format(CleanFmt) << '\n';
     }
     file1.close();
     file2.close();
     file3.close();
     file4.close();
+    file5.close();
+    file6.close();
+    file7.close();
+    file8.close();
 }
 
 int main(int argc, char **argv)
 {
+    // // Using time point and system_clock
+    // std::chrono::time_point<std::chrono::system_clock> start, end;
+    // std::chrono::duration<double> elapsed_seconds;
+    // start = std::chrono::system_clock::now();
 
     if ( argc != 9) //  U, mu, # sweeps, # warm-up sweeps, geometry
     {
@@ -294,28 +350,6 @@ int main(int argc, char **argv)
         K.computeExponential(t, dt);
     }
 
-    if (geom == 14)
-    {
-        if (NSITES % 3 != 0)
-        {
-            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
-            return -1;
-        }
-        double params[] = {1.046, 2.104, -0.184, 0.401, 0.507, 0.218, 0.338, 0.057};
-        K.setParamsThreeOrbitalTB(params);
-        double Delta = 0.4;
-        K.tmdNanoribbonStrained(Ny, Delta);
-
-        // FOR DEBUGGING: TEST MATRIX CREATED BY THE PROGRAM IN OTHER CODES
-        // std::ofstream TMDhoppingNano("temp-data/tmd-hopping-nanoribbon.csv");
-        // if (TMDhoppingNano.is_open())
-        // {
-        //     TMDhoppingNano << K.matrix() << '\n';
-        // }
-        // TMDhoppingNano.close();
-        K.computeExponential(t, dt);
-    }
-
     //  INITIALIZE THE HS MATRIX WITH +1 AND -1 RANDOMLY.
     Configuration< L , NSITES > * h = new Configuration< L , NSITES >;
     h->genHsMatrix();
@@ -348,7 +382,12 @@ int main(int argc, char **argv)
     double electronDensities = 0;
     double doubleOcs = 0;
     double energies = 0;
+    double zzMags = 0;
     Eigen::MatrixXd magCorrZZs =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenFunctionUps =
+      Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenFunctionDowns =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     // double sign = std::copysign(1, Gup->matrix().determinant()
@@ -359,19 +398,26 @@ int main(int argc, char **argv)
     double electronDensity;
     double doubleOc;
     double energy;
+    double zzMag;
     Eigen::MatrixXd magCorrZZ = Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     double nEl = 0;
     double nUp_nDw = 0;
     double Hkin = 0;
+    double zzAFstFactor = 0;
     Eigen::MatrixXd SiSjZ =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenUp = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenDown = Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
     double nElSq = 0;
     double nUp_nDwSq = 0;
     double HkinSq = 0;
+    double zzAFstFactorSq = 0;
     Eigen::MatrixXd SiSjZSq =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenUpSq = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+    Eigen::MatrixXd GreenDownSq = Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
@@ -446,7 +492,7 @@ int main(int argc, char **argv)
               weights[sweep * L + l] = LOGweight;
             }
             //  STORE ELECTRON DENSITY, DOUBLE OCCUPANCY, AND SPIN-SPIN CORRELATIONS.
-            electronDensity = 0.; doubleOc = 0.; energy = 0.;
+            electronDensity = 0.; doubleOc = 0.; zzMag = 0.; energy = 0.;
             for (int x = 0; x < NSITES; x++)
             {
                 electronDensity -= ( Gup->get(x, x) + Gdown->get(x, x) );
@@ -454,6 +500,7 @@ int main(int argc, char **argv)
                 * Gdown->get(x, x);
                 magCorrZZ(x, x) = ( Gup->get(x, x) + Gdown->get(x, x) )
                   - 2 * Gup->get(x, x) * Gdown->get(x, x);
+                zzMag += magCorrZZ(x, x);
                 energy += 2 * ( Gup->get(x, x) + Gdown->get(x, x) ) * (t * K.get(x, x) + mu);
                 for (int y = 0; y < x; y++)
                 {
@@ -467,18 +514,43 @@ int main(int argc, char **argv)
 		                magCorrZZ(y, x) = magCorrZZ(x, y);
                     energy += ( Gup->get(x, y) + Gdown->get(x, y)
                       + Gup->get(y, x) + Gdown->get(y, x) ) * t * K.get(x, y);
+                    if ( geom == 1 or geom == 2 )
+                    {
+                      zzMag += 2 * pow(-1, x - y ) * magCorrZZ(x, y);
+                    }
+
+                    if ( geom == 3 or geom == 4 or geom == 5 or geom == 6 )
+                    {
+                		    if ( ( x + ( ( x - x % int (sqrt(NSITES)) )
+                          / int (sqrt(NSITES)) ) % 2 ) % 2
+                          == ( y + ( ( y - y % int (sqrt(NSITES)) )
+                          / int (sqrt(NSITES)) ) % 2 ) % 2 )
+                		    {
+                            zzMag += 2 * magCorrZZ(x, y);
+                		    }
+                		    else
+                		    {
+                		        zzMag -= 2 * magCorrZZ(x, y);
+                		    }
+                    }
                 }
             }
             electronDensity /= NSITES; electronDensity += 2;
             doubleOc /= NSITES; doubleOc += 1;
-            energy /= NSITES;
+            zzMag /= NSITES; energy /= NSITES;
 
+            GreenFunctionUps +=
+              ( Gup->matrix() * sign - GreenFunctionUps ) / ( l + 1 ) ;
+            GreenFunctionDowns +=
+              ( Gdown->matrix() * sign - GreenFunctionDowns ) / ( l + 1 ) ;
             electronDensities +=
               ( electronDensity * sign - electronDensities ) / ( l + 1 ) ;
             doubleOcs +=
               ( doubleOc * sign - doubleOcs ) / ( l + 1 ) ;
             magCorrZZs +=
               (magCorrZZ * sign - magCorrZZs ) / ( l + 1 );
+            zzMags +=
+              (zzMag * sign - zzMags ) / ( l + 1 );
             energies +=
               ( energy * sign - energies ) / ( l + 1 ) ;
 
@@ -527,26 +599,41 @@ int main(int argc, char **argv)
                     if ( sweep % A == 0 )
                     {
                       meanSign += ( sign - meanSign ) / ( ( sweep - W ) / A + 1 );
+                      GreenUp += ( GreenFunctionUps - GreenUp )
+                       / ( (sweep - W)/A + 1 ) ;
+                      GreenDown += ( GreenFunctionDowns - GreenDown )
+                       / ( (sweep - W)/A + 1 ) ;
                       nEl += ( electronDensities - nEl )
                        / ( (sweep - W)/A + 1 ) ;
                       nUp_nDw += ( doubleOcs - nUp_nDw )
                        / ( (sweep - W)/A + 1 ) ;
                       SiSjZ += ( magCorrZZs - SiSjZ )
                        / ( (sweep - W)/A + 1 ) ;
+                      zzAFstFactor += ( zzMags - zzAFstFactor )
+                       / ( (sweep - W)/A + 1 ) ;
                       Hkin += ( energies - Hkin )
                        / ( (sweep - W)/A + 1 ) ;
 
+                      GreenUpSq += ( GreenFunctionUps.unaryExpr(&matSq) - GreenUpSq )
+                       / ( (sweep - W)/A + 1 ) ;
+                      GreenDownSq += ( GreenFunctionDowns.unaryExpr(&matSq) - GreenDownSq )
+                       / ( (sweep - W)/A + 1 ) ;
                       nElSq += ( pow(electronDensities, 2) - nElSq )
                        / ( (sweep - W)/A + 1 ) ;
                       nUp_nDwSq += ( pow(doubleOcs, 2) - nUp_nDwSq )
                        / ( (sweep - W)/A + 1 ) ;
                       SiSjZSq += ( magCorrZZs.unaryExpr(&matSq) - SiSjZSq )
                        / ( (sweep - W)/A + 1 ) ;
+                      zzAFstFactorSq += ( pow(zzMags, 2) - zzAFstFactorSq )
+                       / ( (sweep - W)/A + 1 ) ;
                       HkinSq += ( pow(energies, 2) - HkinSq )
                        / ( (sweep - W)/A + 1 ) ;
                     }
                     electronDensities = 0.; doubleOcs = 0.;
                     magCorrZZs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+                    GreenFunctionUps = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+                    GreenFunctionDowns = Eigen::Matrix<double, NSITES, NSITES>::Zero();
+                    zzMags = 0.;
                     energies = 0.;
 
                 }
@@ -554,13 +641,24 @@ int main(int argc, char **argv)
                 sweep += 1;
                 l = 0; i = 0;
 
+                // end = std::chrono::system_clock::now();
+                // elapsed_seconds = (end - start);
+                // if ( elapsed_seconds.count() > 30 )
+                // {
+                //   write(meanSign, sweep, W, A, nElSq, nEl, nUp_nDw, nUp_nDwSq, zzAFstFactor,
+                //     zzAFstFactorSq, Hkin, HkinSq, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
+                //     geom, Ny, weights, SiSjZ, SiSjZSq, GreenUp, GreenUpSq, GreenDown, GreenDownSq);
+                //   start = end;
+                // }
+                // std::cout << "elapsed time: " << elapsed_seconds.count() << "s\n";
+
             }
         }
     }   //  END OF MC LOOP.
 
-    write(meanSign, sweep, W, A, nElSq, nEl, nUp_nDw, nUp_nDwSq,
+    write(meanSign, sweep, W, A, nElSq, nEl, nUp_nDw, nUp_nDwSq, zzAFstFactor, zzAFstFactorSq,
       Hkin, HkinSq, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
-      geom, Ny, weights, SiSjZ, SiSjZSq);
+      geom, Ny, weights, SiSjZ, SiSjZSq, GreenUp, GreenUpSq, GreenDown, GreenDownSq);
 
     delete[] weights;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;

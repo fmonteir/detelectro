@@ -1,35 +1,45 @@
 //
-//  mainEqTime.cpp
+//  main_equal_time.cpp
 //
 //
 //  Created by Francisco Brito on 18/10/2018.
 //
 //  This program simulates the Hubbard model for an arbitrary geometry lattice
-//  using auxiliary field (or determinant) Quantum Monte Carlo: in particular, the BSS algorithm.
-//  The used notation is based on the lecture notes "Numerical Methods for Quantum Monte Carlo
-//  Simulations of the Hubbard Model by Zhaojun Bai, Wenbin Chen, Richard Scalettar, and
-//  Ichitaro Yamazaki (2009)
+//  using auxiliary field (or determinant) Quantum Monte Carlo: in particular,
+//  the BSS algorithm. This is version is optimized to compute observables that
+//  require measuring equal-time Green's functions
+//  The used notation is based on the lecture notes "Numerical Methods for
+//  Quantum Monte Carlo Simulations of the Hubbard Model by Zhaojun Bai,
+//  Wenbin Chen, Richard Scalettar, and Ichitaro Yamazaki (2009)
 //
 
+//  Total number of "sites" (actual spatial sites plus orbitals)
 #ifndef NSITES
-#define NSITES 2 //  # sites
+#define NSITES 2
 #endif
 
+//  Inverse Trotter error
 #ifndef DT_INV
-#define DT_INV 16 //  Inverse Trotter error
+#define DT_INV 16
 #endif
 
+//  Inverse temperature
 #ifndef BETA
-#define BETA 2  //  inverse temperature
+#define BETA 2
 #endif
 
+//  How often to calculate Green's functions afresh
+//  (measured in number of imaginary-time slices)
 #ifndef GREEN_AFRESH_FREQ
-#define GREEN_AFRESH_FREQ 4  //   how often to calculate Green's functions afresh (in # im-time slices)
+#define GREEN_AFRESH_FREQ 4
 #endif
 
+//  Output information about the progress of the run
 #ifndef VERBOSE
-#define VERBOSE 0  //   output run information
+#define VERBOSE 0
 #endif
+
+//  Includes
 
 #include <iostream>
 #include <cmath>
@@ -46,148 +56,43 @@
 #include "matrixgen.h"
 #include "green.h"
 
-void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
- double nUp_nDw, double nUp_nDwSq, double Hkin,
- double HkinSq, double U, int nSites, double dt, double beta, int L, double t,
- double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights,
- Eigen::MatrixXd SiSjZ, Eigen::MatrixXd SiSjZSq)
-{
-    //  Normalize to mean sign
-    nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign;
-    Hkin /= meanSign;
-    nElSq /= meanSign; nUp_nDwSq /= meanSign; SiSjZSq /= meanSign;
-    HkinSq /= meanSign;
-
-    Eigen::IOFormat CleanFmt(10, 0, ", ", "\n", "", "");
-
-    if (VERBOSE == 1)
-    {
-        std::cout << "Writing results" << std::endl << std::endl;
-        std::cout << "<s>: " << meanSign << std::endl << std::endl;
-        std::cout << "ds / <s>: " << sqrt( 1 - pow(meanSign, 2) )
-         / sqrt( ( (sweep - W) / A - 1 ) ) / meanSign
-          << std::endl << std::endl;
-        std::cout << "nEl: " << nEl << " +- " <<
-         sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (sweep - W) / A - 1 ) )
-          << std::endl << std::endl;
-        std::cout << "nUp_nDw: " << nUp_nDw << " +- " <<
-         sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (sweep - W) / A - 1 ) )
-          << std::endl << std::endl;
-        std::cout << "Hkin: " << Hkin << " +- " <<
-         sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( ( (sweep - W) / A - 1 ) )
-          << std::endl << std::endl;
-        std::cout << "Hint: " << U * nUp_nDw << " +- " <<
-         U * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) )
-          / sqrt( ( (sweep - W) / A - 1 ) ) << std::endl << std::endl;
-    }
-
-
-    //  SAVE OUTPUT.
-    std::ofstream file0("temp-data/simulationParameters.csv");
-    if (file0.is_open())
-    {
-      file0 << "Number of sites NSITES," << NSITES << '\n';
-      file0 << "Trotter Error dt," << dt << '\n';
-      file0 << "Inverse Temperature BETA," << BETA << '\n';
-      file0 << "Number of Imaginary-time Slices L," << L << '\n';
-      file0 << "Hopping Normalization t," << t << '\n';
-      file0 << "On-site interaction U," << U << '\n';
-      file0 << "mu," << mu << '\n';
-      file0 << "totalMCSweeps," << sweep << '\n';
-      file0 << "Frequency of recomputing G,"
-        << GREEN_AFRESH_FREQ << '\n';
-      file0 << "Number of multiplied Bs after stabilization," << Lbda << '\n';
-      file0 << "Geometry," << geom << '\n';
-      file0 << "Ny," << Ny << '\n';
-    } file0.close();
-    //  STORE MEASUREMENTS
-    std::ofstream file1("temp-data/Log-weights.csv");
-    std::ofstream file2("temp-data/MeasurementsScalars.csv");
-    std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
-    std::ofstream file4("temp-data/EqTimeSzCorrelationsError.csv");
-    if ( file1.is_open() and file2.is_open()
-     and file3.is_open() and file4.is_open() )
-    {
-        file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
-        for (int s = 0; s < W; s++)
-        {
-            for (int slice = 0; slice < L; slice++)
-            {
-                file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
-            }
-        }
-        file2 << std::left << std::setw(50) << "Electron density <n>,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << nEl << '\n';
-        file2 << std::left << std::setw(50) << "d<n>,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
-        file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << nUp_nDw << '\n';
-        file2 << std::left << std::setw(50) << "d<n+ n->,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
-        file2 << std::left << std::setw(50) << "Hkin,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << Hkin << '\n';
-        file2 << std::left << std::setw(50) << "dHkin,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( HkinSq - pow(Hkin, 2) )
-         / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
-        file2 << std::left << std::setw(50) << "Hint,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << U * nUp_nDw << '\n';
-        file2 << std::left << std::setw(50) << "Average sign,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << meanSign << '\n';
-        file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
-        file3 << std::setprecision(10) << SiSjZ.format(CleanFmt) << '\n';
-        file4 << std::left << std::setw(50) << "d<Sz_i Sz_j >" << '\n';
-        file4 <<
-         std::setprecision(10) << ( ( SiSjZSq - SiSjZ.unaryExpr(&matSq) )
-         .unaryExpr(&matSqrt) / sqrt( ( (sweep - W) / A - 1 ) ) )
-         .format(CleanFmt) << '\n';
-    }
-    file1.close();
-    file2.close();
-    file3.close();
-    file4.close();
-}
-
 int main(int argc, char **argv)
 {
-
-    if ( argc != 9) //  U, mu, # sweeps, # warm-up sweeps, geometry
+    if ( argc != 10) //  t, U, f, mu, geom, Ny,
+                    //  # sweeps, # warm-up sweeps, # auto-correlation sweeps
     {
+        std::cout << "Not enough arguments given to simulation."
+        << std::endl << std::endl;
+
         return -1;
     }
 
     double t = atof(argv[1]);  //  tight binding parameter
     double U = atof(argv[2]);  //  on-site interaction
-    double mu = atof(argv[3]);  //  chemical potential
-    int geom = atof(argv[4]);  //   geometry (for example, 1 stands for a 1D chain with PBCs - see makefile)
-    int Ny = atof(argv[5]);    //   geometry parameter to define width of the simulated sample
-    int totalMCSweeps = atof(argv[6]);  //  number of sweeps
-    int W = atof(argv[7]);  //  number of warm-up sweeps
-    int A = atof(argv[8]);  //  number of auto-correlation sweeps
+    double f = atof(argv[3]);  //  fraction of U treated in mean field
+    double mu = atof(argv[4]);  //  chemical potential
+    int geom = atof(argv[5]);  //   geometry (see makefile)
+    int Ny = atof(argv[6]);    //   parameter defining the width of the sample
+    int totalMCSweeps = atof(argv[7]);  //  number of sweeps
+    int W = atof(argv[8]);  //  number of warm-up sweeps
+    int A = atof(argv[9]);  //  number of auto-correlation sweeps
 
-    double dt = 1. / DT_INV;  //  Trotter error, or time subinterval width. error scales as dt^2
+    double dt = 1. / DT_INV;  //  Trotter error. The error scales as dt^2
     const int L = (int)(BETA * DT_INV);  //  # slices
-    //  Lbda = # intervals in which the product of B's is divided to stabilize.
     const int Lbda = (int)(L / GREEN_AFRESH_FREQ);
-    //  HS transformation parameter (to order dtau^2)
+    //  Lbda = # intervals in which the product of B's is divided to stabilize.
     double nu = pow( (U * dt), 0.5) + pow( (U * dt), 1.5) / 12;
+    //  HS transformation parameter (to order dtau^2)
 
     //  RANDOM NUMBER GENERATION AND MONTE CARLO-RELATED VARIABLES.
     std::mt19937 gen;  //  mt19937 algorithm to generate random numbers
     std::uniform_real_distribution<> dis(0.0, 1.0);
+    //  Ensure that we generate uncorrelated random numbers
     std::random_device r;
     std::array<int, 624> seed_data;
     std::generate(seed_data.begin(), seed_data.end(), std::ref(r));
     std::seed_seq seq(std::begin(seed_data), std::end(seed_data));
     gen.seed(seq);
-
     double decisionMaker; int totalMCSteps = totalMCSweeps * NSITES * L;
 
 
@@ -226,11 +131,16 @@ int main(int argc, char **argv)
     {
         K.twoDimensionalRectangleOBC(Ny, t, dt, mu);
     }
-    //  TRIANGULAR LATTICE PBC
-    if (geom == 6)
-    {
-
-    }
+    // //  TRIANGULAR LATTICE PBC
+    // if (geom == 7)
+    // {
+    //     K.twoDimensionalTrianglePBC(t, dt);
+    // }
+    // //  TRIANGULAR LATTICE OBC
+    // if (geom == 8)
+    // {
+    //     K.triangleNanoribbon(t, dt);
+    // }
     //  HONEYCOMB LATTICE PBC
     if (geom == 9)
     {
@@ -257,20 +167,14 @@ int main(int argc, char **argv)
     {
         if (NSITES % 3 != 0)
         {
-            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            std::cout << "Invalid number of sites (real + orbital spaces)."
+            << std::endl << std::endl;
+
             return -1;
         }
         double params[] = {1.046, 2.104, 0.401, 0.507, 0.218, 0.338, 0.057};
         K.setParamsThreeOrbitalTB(params);
         K.tmdPBC();
-
-        // FOR DEBUGGING: TEST MATRIX CREATED BY THE PROGRAM IN OTHER CODES
-        // std::ofstream TMDhopping("temp-data/tmd-hopping.csv");
-        // if (TMDhopping.is_open())
-        // {
-        //     TMDhopping << K.matrix() << '\n';
-        // }
-        // TMDhopping.close();
         K.computeExponential(t, dt);
     }
     if (geom == 13)
@@ -283,14 +187,6 @@ int main(int argc, char **argv)
         double params[] = {1.046, 2.104, -0.184, 0.401, 0.507, 0.218, 0.338, 0.057};
         K.setParamsThreeOrbitalTB(params);
         K.tmdNanoribbon(Ny);
-
-        // FOR DEBUGGING: TEST MATRIX CREATED BY THE PROGRAM IN OTHER CODES
-        // std::ofstream TMDhoppingNano("temp-data/tmd-hopping-nanoribbon.csv");
-        // if (TMDhoppingNano.is_open())
-        // {
-        //     TMDhoppingNano << K.matrix() << '\n';
-        // }
-        // TMDhoppingNano.close();
         K.computeExponential(t, dt);
     }
 
@@ -305,14 +201,6 @@ int main(int argc, char **argv)
         K.setParamsThreeOrbitalTB(params);
         double Delta = 0.4;
         K.tmdNanoribbonStrained(Ny, Delta);
-
-        // FOR DEBUGGING: TEST MATRIX CREATED BY THE PROGRAM IN OTHER CODES
-        // std::ofstream TMDhoppingNano("temp-data/tmd-hopping-nanoribbon.csv");
-        // if (TMDhoppingNano.is_open())
-        // {
-        //     TMDhoppingNano << K.matrix() << '\n';
-        // }
-        // TMDhoppingNano.close();
         K.computeExponential(t, dt);
     }
 
