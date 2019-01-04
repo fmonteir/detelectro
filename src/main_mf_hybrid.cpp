@@ -68,8 +68,8 @@ int main(int argc, char **argv)
     }
 
     double t = atof(argv[1]);  //  tight binding parameter
-    double U = atof(argv[2]);  //  on-site interaction
-    double f = atof(argv[3]);  //  fraction of U treated in mean field
+    double U = atof(argv[2]);  //  on-site interaction treated in QMC
+    double Umf = atof(argv[3]);  //  on-site interaction treated in mean field
     double mu = atof(argv[4]);  //  chemical potential
     int geom = atof(argv[5]);  //   geometry (see makefile)
     int Ny = atof(argv[6]);    //   parameter defining the width of the sample
@@ -172,8 +172,8 @@ int main(int argc, char **argv)
 
             return -1;
         }
-        double params[] = {1.046, 2.104, 0.401, 0.507, 0.218, 0.338, 0.057};
-        K.setParamsThreeOrbitalTB(params);
+        double parMoS2[] = {1.046, 2.104, 0.401, 0.507, 0.218, 0.338, 0.057};
+        K.setParamsThreeOrbitalTB(parMoS2);
         K.tmdPBC();
         K.computeExponential(t, dt);
     }

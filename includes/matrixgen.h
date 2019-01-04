@@ -22,17 +22,13 @@ double matSqrt(double x) // element-wise square root of a matrix
     return std::sqrt(x);
 }
 
-void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
- double nUp_nDw, double nUp_nDwSq, double Hkin,
- double HkinSq, double U, int nSites, double dt, double beta, int L, double t,
- double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights,
- Eigen::MatrixXd SiSjZ, Eigen::MatrixXd SiSjZSq)
+void write(double meanSign, int sweep, int W, int A, double nEl,
+ double nUp_nDw, double Hkin, double U, int nSites, double dt, double beta, int L, double t,
+ double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights, Eigen::MatrixXd SiSjZ)
 {
     //  Normalize to mean sign
     nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign;
     Hkin /= meanSign;
-    nElSq /= meanSign; nUp_nDwSq /= meanSign; SiSjZSq /= meanSign;
-    HkinSq /= meanSign;
 
     Eigen::IOFormat CleanFmt(10, 0, ", ", "\n", "", "");
 
@@ -43,18 +39,10 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
         std::cout << "ds / <s>: " << sqrt( 1 - pow(meanSign, 2) )
          / sqrt( ( (sweep - W) / A - 1 ) ) / meanSign
           << std::endl << std::endl;
-        std::cout << "nEl: " << nEl << " +- " <<
-         sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (sweep - W) / A - 1 ) )
-          << std::endl << std::endl;
-        std::cout << "nUp_nDw: " << nUp_nDw << " +- " <<
-         sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (sweep - W) / A - 1 ) )
-          << std::endl << std::endl;
-        std::cout << "Hkin: " << Hkin << " +- " <<
-         sqrt( HkinSq - pow(Hkin, 2) ) / sqrt( ( (sweep - W) / A - 1 ) )
-          << std::endl << std::endl;
-        std::cout << "Hint: " << U * nUp_nDw << " +- " <<
-         U * sqrt( nUp_nDwSq - pow(nUp_nDw, 2) )
-          / sqrt( ( (sweep - W) / A - 1 ) ) << std::endl << std::endl;
+        std::cout << "nEl: " << nEl << std::endl << std::endl;
+        std::cout << "nUp_nDw: " << nUp_nDw << std::endl << std::endl;
+        std::cout << "Hkin: " << Hkin << std::endl << std::endl;
+        std::cout << "Hint: " << U * nUp_nDw << std::endl << std::endl;
     }
 
 
@@ -80,9 +68,8 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
     std::ofstream file1("temp-data/Log-weights.csv");
     std::ofstream file2("temp-data/MeasurementsScalars.csv");
     std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
-    std::ofstream file4("temp-data/EqTimeSzCorrelationsError.csv");
     if ( file1.is_open() and file2.is_open()
-     and file3.is_open() and file4.is_open() )
+     and file3.is_open() )
     {
         file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
         for (int s = 0; s < W; s++)
@@ -95,22 +82,12 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
         file2 << std::left << std::setw(50) << "Electron density <n>,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << nEl << '\n';
-        file2 << std::left << std::setw(50) << "d<n>,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
         file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << nUp_nDw << '\n';
-        file2 << std::left << std::setw(50) << "d<n+ n->,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( nUp_nDwSq - pow(nUp_nDw, 2) ) / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
         file2 << std::left << std::setw(50) << "Hkin,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << Hkin << '\n';
-        file2 << std::left << std::setw(50) << "dHkin,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( HkinSq - pow(Hkin, 2) )
-         / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
         file2 << std::left << std::setw(50) << "Hint,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << U * nUp_nDw << '\n';
@@ -119,16 +96,10 @@ void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
         << meanSign << '\n';
         file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
         file3 << std::setprecision(10) << SiSjZ.format(CleanFmt) << '\n';
-        file4 << std::left << std::setw(50) << "d<Sz_i Sz_j >" << '\n';
-        file4 <<
-         std::setprecision(10) << ( ( SiSjZSq - SiSjZ.unaryExpr(&matSq) )
-         .unaryExpr(&matSqrt) / sqrt( ( (sweep - W) / A - 1 ) ) )
-         .format(CleanFmt) << '\n';
     }
     file1.close();
     file2.close();
     file3.close();
-    file4.close();
 }
 
 template<int N>

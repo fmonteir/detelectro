@@ -1,12 +1,12 @@
 //
-//  matrixgen.h
+//  matrixgen_hybrid.h
 //
 //
-//  Created by Francisco Brito on 26/12/2018.
+//  Created by Francisco Brito on 03/01/2019.
 //
 
-#ifndef matrixgen_h
-#define matrixgen_h
+#ifndef matrixgen_hybrid_h
+#define matrixgen_hybrid_h
 
 #ifndef NORB
 #define NORB 3  //   number of orbitals

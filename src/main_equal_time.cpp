@@ -254,13 +254,6 @@ int main(int argc, char **argv)
     Eigen::MatrixXd SiSjZ =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
-    double nElSq = 0;
-    double nUp_nDwSq = 0;
-    double HkinSq = 0;
-    Eigen::MatrixXd SiSjZSq =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-
-
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.
     //  FOR EACH IMAGINARY TIME SLICE l, LOOP OVER ALL SPATIAL LATTICE,
     //  THEN CHANGE SLICE, AND SO ON UNTIL l=L. REPEAT.
@@ -423,14 +416,6 @@ int main(int argc, char **argv)
                       Hkin += ( energies - Hkin )
                        / ( (sweep - W)/A + 1 ) ;
 
-                      nElSq += ( pow(electronDensities, 2) - nElSq )
-                       / ( (sweep - W)/A + 1 ) ;
-                      nUp_nDwSq += ( pow(doubleOcs, 2) - nUp_nDwSq )
-                       / ( (sweep - W)/A + 1 ) ;
-                      SiSjZSq += ( magCorrZZs.unaryExpr(&matSq) - SiSjZSq )
-                       / ( (sweep - W)/A + 1 ) ;
-                      HkinSq += ( pow(energies, 2) - HkinSq )
-                       / ( (sweep - W)/A + 1 ) ;
                     }
                     electronDensities = 0.; doubleOcs = 0.;
                     magCorrZZs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
@@ -445,9 +430,9 @@ int main(int argc, char **argv)
         }
     }   //  END OF MC LOOP.
 
-    write(meanSign, sweep, W, A, nElSq, nEl, nUp_nDw, nUp_nDwSq,
-      Hkin, HkinSq, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
-      geom, Ny, weights, SiSjZ, SiSjZSq);
+    write(meanSign, sweep, W, A, nEl, nUp_nDw,
+      Hkin, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
+      geom, Ny, weights, SiSjZ);
 
     delete[] weights;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;
