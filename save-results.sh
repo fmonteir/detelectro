@@ -113,27 +113,54 @@ fi
 
 if [ $geom -eq 12 ]
 then
-  mkdir examples/data/2d-tmd-pbc
-  mkdir examples/data/2d-tmd-pbc/N$nsites-BETA$beta-U$U-MU$mu
-  mkdir examples/plots/2d-tmd-pbc
-  mkdir examples/plots/2d-tmd-pbc/N$nsites-BETA$beta-U$U-MU$mu
-  cp -r temp-data/* examples/data/2d-tmd-pbc/N$nsites-BETA$beta-U$U-MU$mu
+  mkdir examples/data/2d-MoS2-pbc
+  mkdir examples/data/2d-MoS2-pbc/N$nsites-BETA$beta-U$U-MU$mu
+  mkdir examples/plots/2d-MoS2-pbc
+  mkdir examples/plots/2d-MoS2-pbc/N$nsites-BETA$beta-U$U-MU$mu
+  cp -r temp-data/* examples/data/2d-MoS2-pbc/N$nsites-BETA$beta-U$U-MU$mu
 fi
 
 if [ $geom -eq 13 ]
 then
-  mkdir examples/data/2d-tmd-nanoribbon
-  mkdir examples/data/2d-tmd-nanoribbon/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
-  mkdir examples/plots/2d-tmd-nanoribbon
-  mkdir examples/plots/2d-tmd-nanoribbon/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
-  cp -r temp-data/* examples/data/2d-tmd-nanoribbon/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+  mkdir examples/data/2d-MoS2-nanoribbon
+  mkdir examples/data/2d-MoS2-nanoribbon/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+  mkdir examples/plots/2d-MoS2-nanoribbon
+  mkdir examples/plots/2d-MoS2-nanoribbon/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+  cp -r temp-data/* examples/data/2d-MoS2-nanoribbon/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
 fi
 
 if [ $geom -eq 14 ]
 then
-  mkdir examples/data/2d-tmd-nanoribbon-strain
-  mkdir examples/data/2d-tmd-nanoribbon-strain/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
-  mkdir examples/plots/2d-tmd-nanoribbon-strain
-  mkdir examples/plots/2d-tmd-nanoribbon-strain/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
-  cp -r temp-data/* examples/data/2d-tmd-nanoribbon-strain/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+  mkdir examples/data/2d-MoS2-nanoribbon-strain
+  mkdir examples/data/2d-MoS2-nanoribbon-strain/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+  mkdir examples/plots/2d-MoS2-nanoribbon-strain
+  mkdir examples/plots/2d-MoS2-nanoribbon-strain/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+  cp -r temp-data/* examples/data/2d-MoS2-nanoribbon-strain/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+fi
+
+if [ $geom -eq 15 ]
+then
+  mkdir examples/data/2d-WS2-pbc
+  mkdir examples/data/2d-WS2-pbc/N$nsites-BETA$beta-U$U-MU$mu
+  mkdir examples/plots/2d-WS2-pbc
+  mkdir examples/plots/2d-WS2-pbc/N$nsites-BETA$beta-U$U-MU$mu
+  cp -r temp-data/* examples/data/2d-WS2-pbc/N$nsites-BETA$beta-U$U-MU$mu
+fi
+
+if [ $geom -eq 16 ]
+then
+  mkdir examples/data/2d-WS2-nanoribbon
+  mkdir examples/data/2d-WS2-nanoribbon/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+  mkdir examples/plots/2d-WS2-nanoribbon
+  mkdir examples/plots/2d-WS2-nanoribbon/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+  cp -r temp-data/* examples/data/2d-WS2-nanoribbon/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+fi
+
+if [ $geom -eq 17 ]
+then
+  mkdir examples/data/2d-WS2-nanoribbon-strain
+  mkdir examples/data/2d-WS2-nanoribbon-strain/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+  mkdir examples/plots/2d-WS2-nanoribbon-strain
+  mkdir examples/plots/2d-WS2-nanoribbon-strain/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
+  cp -r temp-data/* examples/data/2d-WS2-nanoribbon-strain/N$nsites-BETA$beta-U$U-MU$mu-NY$ny
 fi

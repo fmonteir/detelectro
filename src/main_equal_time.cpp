@@ -171,7 +171,7 @@ int main(int argc, char **argv)
 
             return -1;
         }
-        double params[] = {1.046, 2.104, 0.401, 0.507, 0.218, 0.338, 0.057};
+        double params[] = {1.046, 2.104, -0.184, 0.401, 0.507, 0.218, 0.338, 0.057};
         K.setParamsThreeOrbitalTB(params);
         K.tmdPBC();
         K.computeExponential(t, dt);
@@ -197,6 +197,211 @@ int main(int argc, char **argv)
             return -1;
         }
         double params[] = {1.046, 2.104, -0.184, 0.401, 0.507, 0.218, 0.338, 0.057};
+        K.setParamsThreeOrbitalTB(params);
+        double Delta = 0.4;
+        K.tmdNanoribbonStrained(Ny, Delta);
+        K.computeExponential(t, dt);
+    }
+    //  WS2
+    if (geom == 15)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)."
+            << std::endl << std::endl;
+
+            return -1;
+        }
+        double params[] = {1.130, 2.275, -0.206, 0.567, 0.536, 0.286, 0.384, -0.061};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdPBC();
+        K.computeExponential(t, dt);
+    }
+    if (geom == 16)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {1.130, 2.275, -0.206, 0.567, 0.536, 0.286, 0.384, -0.061};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdNanoribbon(Ny);
+        K.computeExponential(t, dt);
+    }
+
+    if (geom == 17)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {1.130, 2.275, -0.206, 0.567, 0.536, 0.286, 0.384, -0.061};
+        K.setParamsThreeOrbitalTB(params);
+        double Delta = 0.4;
+        K.tmdNanoribbonStrained(Ny, Delta);
+        K.computeExponential(t, dt);
+    }
+    //  MoSe2
+    if (geom == 18)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)."
+            << std::endl << std::endl;
+
+            return -1;
+        }
+        double params[] = {0.919, 2.065, -0.188, 0.317, 0.456, 0.211, 0.290, 0.130};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdPBC();
+        K.computeExponential(t, dt);
+    }
+    if (geom == 19)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {0.919, 2.065, -0.188, 0.317, 0.456, 0.211, 0.290, 0.130};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdNanoribbon(Ny);
+        K.computeExponential(t, dt);
+    }
+
+    if (geom == 20)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {0.919, 2.065, -0.188, 0.317, 0.456, 0.211, 0.290, 0.130};
+        K.setParamsThreeOrbitalTB(params);
+        double Delta = 0.4;
+        K.tmdNanoribbonStrained(Ny, Delta);
+        K.computeExponential(t, dt);
+    }
+    //  WSe2
+    if (geom == 21)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)."
+            << std::endl << std::endl;
+
+            return -1;
+        }
+        double params[] = {0.943, 2.179, -0.207, 0.457, 0.486, 0.263, 0.329, 0.034};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdPBC();
+        K.computeExponential(t, dt);
+    }
+    if (geom == 22)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {0.943, 2.179, -0.207, 0.457, 0.486, 0.263, 0.329, 0.034};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdNanoribbon(Ny);
+        K.computeExponential(t, dt);
+    }
+
+    if (geom == 23)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {0.943, 2.179, -0.207, 0.457, 0.486, 0.263, 0.329, 0.034};
+        K.setParamsThreeOrbitalTB(params);
+        double Delta = 0.4;
+        K.tmdNanoribbonStrained(Ny, Delta);
+        K.computeExponential(t, dt);
+    }
+    //  MoTe2
+    if (geom == 24)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)."
+            << std::endl << std::endl;
+
+            return -1;
+        }
+        double params[] = {0.605, 1.972, -0.169, 0.228, 0.390, 0.207, 0.239, 0.252};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdPBC();
+        K.computeExponential(t, dt);
+    }
+    if (geom == 25)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {0.605, 1.972, -0.169, 0.228, 0.390, 0.207, 0.239, 0.252};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdNanoribbon(Ny);
+        K.computeExponential(t, dt);
+    }
+
+    if (geom == 26)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {0.605, 1.972, -0.169, 0.228, 0.390, 0.207, 0.239, 0.252};
+        K.setParamsThreeOrbitalTB(params);
+        double Delta = 0.4;
+        K.tmdNanoribbonStrained(Ny, Delta);
+        K.computeExponential(t, dt);
+    }
+    //  WTe2
+    if (geom == 27)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)."
+            << std::endl << std::endl;
+
+            return -1;
+        }
+        double params[] = {0.606, 2.102, -0.175, 0.342, 0.410, 0.233, 0.270, 0.190};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdPBC();
+        K.computeExponential(t, dt);
+    }
+    if (geom == 28)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {0.606, 2.102, -0.175, 0.342, 0.410, 0.233, 0.270, 0.190};
+        K.setParamsThreeOrbitalTB(params);
+        K.tmdNanoribbon(Ny);
+        K.computeExponential(t, dt);
+    }
+
+    if (geom == 29)
+    {
+        if (NSITES % 3 != 0)
+        {
+            std::cout << "Invalid number of sites (real + orbital spaces)." << std::endl;
+            return -1;
+        }
+        double params[] = {0.606, 2.102, -0.175, 0.342, 0.410, 0.233, 0.270, 0.190};
         K.setParamsThreeOrbitalTB(params);
         double Delta = 0.4;
         K.tmdNanoribbonStrained(Ny, Delta);

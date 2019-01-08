@@ -15,9 +15,24 @@
 #		(9) 	2D Periodic Honeycomb Lattice
 #		(10)	2D Honeycomb Nanoribbon
 #		(11)	2D Honeycomb Strained Nanoribbon
-#		(12)	2D Minimal model of a periodic TMD sample (Liu2013)
-#		(13)	2D Minimal model of a TMD nanoribbon (Liu2013)
-#		(14)	2D Minimal model of a TMD nanoribbon with Strain (Liu2013)
+#		(12)	2D Minimal model of a periodic MoS2 sample (Liu2013)
+#		(13)	2D Minimal model of a MoS2 nanoribbon (Liu2013)
+#		(14)	2D Minimal model of a MoS2 nanoribbon with Strain (Liu2013)
+#		(15)	2D Minimal model of a periodic WS2 sample (Liu2013)
+#		(16)	2D Minimal model of a WS2 nanoribbon (Liu2013)
+#		(17)	2D Minimal model of a WS2 nanoribbon with Strain (Liu2013)
+#		(18)	2D Minimal model of a periodic MoSe2 sample (Liu2013)
+#		(19)	2D Minimal model of a MoSe2 nanoribbon (Liu2013)
+#		(20)	2D Minimal model of a MoSe2 nanoribbon with Strain (Liu2013)
+#		(21)	2D Minimal model of a periodic WSe2 sample (Liu2013)
+#		(22)	2D Minimal model of a WSe2 nanoribbon (Liu2013)
+#		(23)	2D Minimal model of a WSe2 nanoribbon with Strain (Liu2013)
+#		(24)	2D Minimal model of a periodic MoTe2 sample (Liu2013)
+#		(25)	2D Minimal model of a MoTe2 nanoribbon (Liu2013)
+#		(26)	2D Minimal model of a MoTe2 nanoribbon with Strain (Liu2013)
+#		(27)	2D Minimal model of a periodic WTe2 sample (Liu2013)
+#		(28)	2D Minimal model of a WTe2 nanoribbon (Liu2013)
+#		(29)	2D Minimal model of a WTe2 nanoribbon with Strain (Liu2013)
 
 #	DEFAULT PARAMETERS
 
@@ -92,20 +107,30 @@ mu is the chemical potential (in particle-hole symmetric form, mu -> mu + U /2 )
 	@echo ""
 	@echo "(11)		2D Honeycomb Nanoribbon w/ Strain"
 	@echo ""
-	@echo "(12)		2D Minimal model of a periodic TMD sample\
+	@echo "(12)		2D Minimal model of a periodic MoS2 sample\
 	 (Liu et al., Phys Rev B 88, 085433, 2013 )\
 	 nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites."
 	@echo ""
-	@echo "(13)		2D Minimal model of a TMD nanoribbon\
+	@echo "(13)		2D Minimal model of a MoS2 nanoribbon\
 	 (Liu et al., Phys Rev B 88, 085433, 2013 )\
 	 nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites."
 	@echo ""
-	@echo "(14)		2D Minimal model of a TMD nanoribbon with strain\
+	@echo "(14)		2D Minimal model of a MoS2 nanoribbon with strain\
 	 (Liu et al., Phys Rev B 88, 085433, 2013 )\
 	 nsites includes orbital space, i.e. nsites=n_orbitals * n_spatial_sites."
+	@echo ""
+	@echo "(15-17)		Same with WS2."
+	@echo ""
+	@echo "(18-20)		Same with MoSe2."
+	@echo ""
+	@echo "(21-23)		Same with WSe2."
+	@echo ""
+	@echo "(24-26)		Same with MoTe2."
+	@echo ""
+	@echo "(27-29)		Same with WTe2."
 	@echo ""
 	@echo "The Ny parameter is only meaningful\
-	 for geometry options 5, 6, 8, 10, 11, 12 and 13."
+	 for geometry options 5, 6, 8, 10-29."
 	@echo ""
 endif
 
