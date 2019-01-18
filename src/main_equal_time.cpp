@@ -198,7 +198,7 @@ int main(int argc, char **argv)
         }
         double params[] = {1.046, 2.104, -0.184, 0.401, 0.507, 0.218, 0.338, 0.057};
         K.setParamsThreeOrbitalTB(params);
-        double Delta = 0.4;
+        double Delta = 0.2 / params[2];
         K.tmdNanoribbonStrained(Ny, Delta);
         K.computeExponential(t, dt);
     }
@@ -635,9 +635,22 @@ int main(int argc, char **argv)
         }
     }   //  END OF MC LOOP.
 
-    write(meanSign, sweep, W, A, nEl, nUp_nDw,
-      Hkin, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
-      geom, Ny, weights, SiSjZ);
+    if
+    ( (geom == 13) || (geom == 14) || (geom == 16) || (geom == 17) ||
+    (geom == 19) || (geom == 20) || (geom == 22) || (geom == 23) ||
+    (geom == 25) || (geom == 26) || (geom == 28) || (geom == 29)
+    )
+    {
+        writeTMDNR(meanSign, sweep, W, A, nEl, nUp_nDw,
+          Hkin, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
+          geom, Ny, weights, SiSjZ);
+    }
+    else
+    {
+        write(meanSign, sweep, W, A, nEl, nUp_nDw,
+          Hkin, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
+          geom, Ny, weights, SiSjZ);
+    }
 
     delete[] weights;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;

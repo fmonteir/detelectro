@@ -22,15 +22,16 @@ double matSqrt(double x) // element-wise square root of a matrix
     return std::sqrt(x);
 }
 
-void write(double meanSign, int sweep, int W, int A, double nEl,
- double nUp_nDw, double Hkin, double U, int nSites, double dt, double beta, int L, double t,
- double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights, Eigen::MatrixXd SiSjZ)
+void write(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
+  double Hkin, double U, int nSites, double dt, double beta, int L, double t,
+  double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights, Eigen::MatrixXd SiSjZ)
 {
     //  Normalize to mean sign
     nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign;
     Hkin /= meanSign;
 
-    Eigen::IOFormat CleanFmt(10, 0, ", ", "\n", "", "");
+    int precision = 10;
+    Eigen::IOFormat CleanFmt(precision, 0, ", ", "\n", "", "");
 
     if (VERBOSE == 1)
     {
@@ -40,9 +41,8 @@ void write(double meanSign, int sweep, int W, int A, double nEl,
          / sqrt( ( (sweep - W) / A - 1 ) ) / meanSign
           << std::endl << std::endl;
         std::cout << "nEl: " << nEl << std::endl << std::endl;
-        std::cout << "nUp_nDw: " << nUp_nDw << std::endl << std::endl;
         std::cout << "Hkin: " << Hkin << std::endl << std::endl;
-        std::cout << "Hint: " << U * nUp_nDw << std::endl << std::endl;
+        std::cout << "U nUp_nDw: " << U * nUp_nDw << std::endl << std::endl;
     }
 
 
@@ -88,14 +88,120 @@ void write(double meanSign, int sweep, int W, int A, double nEl,
         file2 << std::left << std::setw(50) << "Hkin,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << Hkin << '\n';
-        file2 << std::left << std::setw(50) << "Hint,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << U * nUp_nDw << '\n';
         file2 << std::left << std::setw(50) << "Average sign,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << meanSign << '\n';
-        file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
+        file3 << std::left << std::setw(50) << "<SiSj>" << '\n';
         file3 << std::setprecision(10) << SiSjZ.format(CleanFmt) << '\n';
+    }
+    file1.close();
+    file2.close();
+    file3.close();
+}
+
+void writeTMDNR(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
+  double Hkin, double U, int nSites, double dt, double beta, int L, double t,
+  double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights, Eigen::MatrixXd SiSjZ)
+{
+    //  Normalize to mean sign
+    nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign;
+    Hkin /= meanSign;
+
+    int Nx = nSites / Ny / NORB;
+    Eigen::MatrixXd spin_corr;
+    spin_corr = Eigen::MatrixXd::Zero(Ny * NORB, nSites);
+
+    for (int a = 0; a < NORB; a++)
+    {
+        for (int x1 = 0; x1 < Nx; x1++)
+        {
+            for (int y1 = 0; y1 < Ny; y1++)
+            {
+                for (int b = 0; b < NORB; b++)
+                {
+                    for (int x2 = 0; x2 < Nx; x2++)
+                    {
+                        for (int y2 = 0; y2 < Ny; y2++)
+                        {
+                            spin_corr( NORB * y1 + a ,
+                                  NORB * ( Nx * y2 + x2 ) + b ) +=
+                            (
+                              SiSjZ( NORB * ( Nx * y1 + x1 ) + a ,
+                                   NORB * ( Nx * y2 + abs(x2 - x1) ) + b ) +
+                              SiSjZ( NORB * ( Nx * y1 + x1 ) + a ,
+                                   NORB * ( Nx * y2 + ( Nx - abs(x2 - x1) ) % Nx ) + b )
+                            ) / 2 / Nx;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    int precision = 10;
+    Eigen::IOFormat CleanFmt(precision, 0, ", ", "\n", "", "");
+
+    if (VERBOSE == 1)
+    {
+        std::cout << "Writing results" << std::endl << std::endl;
+        std::cout << "<s>: " << meanSign << std::endl << std::endl;
+        std::cout << "ds / <s>: " << sqrt( 1 - pow(meanSign, 2) )
+         / sqrt( ( (sweep - W) / A - 1 ) ) / meanSign
+          << std::endl << std::endl;
+        std::cout << "nEl: " << nEl << std::endl << std::endl;
+        std::cout << "Hkin: " << Hkin << std::endl << std::endl;
+        std::cout << "U nUp_nDw: " << U * nUp_nDw << std::endl << std::endl;
+    }
+
+
+    //  SAVE OUTPUT.
+    std::ofstream file0("temp-data/simulationParameters.csv");
+    if (file0.is_open())
+    {
+      file0 << "Number of sites NSITES," << NSITES << '\n';
+      file0 << "Trotter Error dt," << dt << '\n';
+      file0 << "Inverse Temperature BETA," << BETA << '\n';
+      file0 << "Number of Imaginary-time Slices L," << L << '\n';
+      file0 << "Hopping Normalization t," << t << '\n';
+      file0 << "On-site interaction U," << U << '\n';
+      file0 << "mu," << mu << '\n';
+      file0 << "totalMCSweeps," << sweep << '\n';
+      file0 << "Frequency of recomputing G,"
+        << GREEN_AFRESH_FREQ << '\n';
+      file0 << "Number of multiplied Bs after stabilization," << Lbda << '\n';
+      file0 << "Geometry," << geom << '\n';
+      file0 << "Ny," << Ny << '\n';
+    } file0.close();
+    //  STORE MEASUREMENTS
+    std::ofstream file1("temp-data/Log-weights.csv");
+    std::ofstream file2("temp-data/MeasurementsScalars.csv");
+    std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
+    if ( file1.is_open() and file2.is_open()
+     and file3.is_open() )
+    {
+        file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
+        for (int s = 0; s < W; s++)
+        {
+            for (int slice = 0; slice < L; slice++)
+            {
+                file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
+            }
+        }
+        file2 << std::left << std::setw(50) << "Electron density <n>,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nEl << '\n';
+        file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nUp_nDw << '\n';
+        file2 << std::left << std::setw(50) << "Hkin,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << Hkin << '\n';
+        file2 << std::left << std::setw(50) << "Average sign,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << meanSign << '\n';
+        file3 << std::left << std::setw(50) << "<SiSj>" << '\n';
+        file3 << std::setprecision(precision)
+        << spin_corr.format(CleanFmt) << '\n';
     }
     file1.close();
     file2.close();
@@ -1070,43 +1176,43 @@ void Geometry<N>::tmdNanoribbonStrained(int Ny, double Delta)
 
             B.block(
             ( Nx * y + x ) * NORB , ( Nx * y + ( (x + 1) % Nx ) ) * NORB , NORB , NORB )
-            = Eone + Delta * Eigen::Matrix<double, NORB, NORB>::Identity();
+            = Eone - Delta * Eigen::Matrix<double, NORB, NORB>::Identity();
 
             //  E4
 
             B.block(
             ( Nx * y + ( (x + 1) % Nx ) ) * NORB , ( Nx * y + x ) * NORB , NORB , NORB )
-            = Efour + Delta * Eigen::Matrix<double, NORB, NORB>::Identity();
+            = Efour - Delta * Eigen::Matrix<double, NORB, NORB>::Identity();
 
             if ( y == 0 )
             {
                 B.block(
                 x * NORB , ( Nx + x ) * NORB , NORB , NORB )
-                = Esix;
+                = Esix - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                 B.block(
                 ( Nx + x ) * NORB , x * NORB , NORB , NORB )
-                = Ethree;
+                = Ethree - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                 if ( x == 0 )
                 {
                     B.block(
                     x * NORB , ( Nx + (Nx - 1 ) ) * NORB , NORB , NORB )
-                    = Efive;
+                    = Efive - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                     B.block(
                     ( Nx + (Nx - 1 ) ) * NORB, x * NORB , NORB , NORB )
-                    = Etwo;
+                    = Etwo - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
                 }
                 else
                 {
                     B.block(
                     x * NORB, ( Nx + ( x - 1 ) ) * NORB, NORB, NORB )
-                    = Efive;
+                    = Efive - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                     B.block(
                     ( Nx + ( x - 1 ) ) * NORB, x * NORB, NORB, NORB )
-                    = Etwo;
+                    = Etwo - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
                 }
             }
             else
@@ -1116,68 +1222,68 @@ void Geometry<N>::tmdNanoribbonStrained(int Ny, double Delta)
                     B.block(
                     ( Nx * ( Ny - 1 ) + x ) * NORB,
                     ( Nx * ( Ny - 2 ) + ( x + 1 ) % Nx ) * NORB, NORB, NORB )
-                    = Etwo;
+                    = Etwo - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                     B.block(
                     ( Nx * ( Ny - 2 ) + ( x + 1 ) % Nx ) * NORB,
                     ( Nx * ( Ny - 1 ) + x ) * NORB, NORB, NORB )
-                    = Efive;
+                    = Efive - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                     B.block(
                     ( Nx * ( Ny - 1 ) + x ) * NORB,
                     ( Nx * ( Ny - 2 ) + x ) * NORB, NORB, NORB )
-                    = Ethree;
+                    = Ethree - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                     B.block(
                     ( Nx * ( Ny - 2 ) + x ) * NORB,
                     ( Nx * ( Ny - 1 ) + x ) * NORB, NORB, NORB )
-                    = Esix;
+                    = Esix - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
                 }
                 else
                 {
                     B.block(
                     ( Nx * y + x ) * NORB,
                     ( Nx * ( y - 1 ) + ( x + 1 ) % Nx ) * NORB, NORB, NORB )
-                    = Etwo;
+                    = Etwo - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                     B.block(
                     ( Nx * ( y - 1 ) + ( x + 1 ) % Nx ) * NORB,
                     ( Nx * y + x ) * NORB, NORB, NORB )
-                    = Efive;
+                    = Efive - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                     B.block(
                     ( Nx * y + x ) * NORB,
                     ( Nx * ( y - 1 ) + x ) * NORB, NORB, NORB )
-                    = Ethree;
+                    = Ethree - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                     B.block(
                     ( Nx * ( y - 1 ) + x ) * NORB,
                     ( Nx * y + x ) * NORB, NORB, NORB )
-                    = Esix;
+                    = Esix - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                     if ( x == 0 )
                     {
                         B.block(
                         ( Nx * y + x ) * NORB,
                         ( Nx * ( y + 1 ) + Nx - 1 ) * NORB, NORB, NORB )
-                        = Efive;
+                        = Efive - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                         B.block(
                         ( Nx * ( y + 1 ) + Nx - 1 ) * NORB,
                         ( Nx * y + x ) * NORB, NORB, NORB )
-                        = Etwo;
+                        = Etwo - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
                     }
                     else
                     {
                         B.block(
                         ( Nx * y + x ) * NORB,
                         ( Nx * ( y + 1 ) + x - 1 ) * NORB, NORB, NORB )
-                        = Efive;
+                        = Efive - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
 
                         B.block(
                         ( Nx * ( y + 1 ) + x - 1 ) * NORB,
                         ( Nx * y + x ) * NORB, NORB, NORB )
-                        = Etwo;
+                        = Etwo - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
                     }
                 }
             }
