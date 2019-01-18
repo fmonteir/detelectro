@@ -550,6 +550,7 @@ int main(int argc, char **argv)
             }
             //  STORE ELECTRON DENSITY, DOUBLE OCCUPANCY, AND SPIN-SPIN CORRELATIONS.
             electronDensity = 0.; doubleOc = 0.; energy = 0.;
+            magCorrZZ = Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
             for (int a = 0; a < NORB; a++)
                 for (int x1 = 0; x1 < NX; x1++)
                     for (int y1 = 0; y1 < NY; y1++)
@@ -655,7 +656,6 @@ int main(int argc, char **argv)
               ( doubleOc * sign - doubleOcs ) / ( l + 1 ) ;
             magCorrZZs +=
               (magCorrZZ * sign - magCorrZZs ) / ( l + 1 );
-            magCorrZZ = Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
             energies +=
               ( energy * sign - energies ) / ( l + 1 ) ;
 
@@ -741,7 +741,7 @@ int main(int argc, char **argv)
     // {
     write(meanSign, sweep, W, A, nEl, nUp_nDw,
       Hkin, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
-      geom, NY, weights, SiSjZ);
+      geom, NY, weights, SiSjZ, corrs, totalMCSweeps);
     // }
 
     delete[] weights;
