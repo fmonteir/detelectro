@@ -112,31 +112,22 @@ void writeTMDNR(double meanSign, int sweep, int W, int A, double nEl, double nUp
     spin_corr = Eigen::MatrixXd::Zero(Ny * NORB, nSites);
 
     for (int a = 0; a < NORB; a++)
-    {
         for (int x1 = 0; x1 < Nx; x1++)
-        {
             for (int y1 = 0; y1 < Ny; y1++)
-            {
                 for (int b = 0; b < NORB; b++)
-                {
                     for (int x2 = 0; x2 < Nx; x2++)
-                    {
                         for (int y2 = 0; y2 < Ny; y2++)
                         {
                             spin_corr( NORB * y1 + a ,
-                                  NORB * ( Nx * y2 + x2 ) + b ) +=
-                            (
-                              SiSjZ( NORB * ( Nx * y1 + x1 ) + a ,
-                                   NORB * ( Nx * y2 + abs(x2 - x1) ) + b ) +
-                              SiSjZ( NORB * ( Nx * y1 + x1 ) + a ,
-                                   NORB * ( Nx * y2 + ( Nx - abs(x2 - x1) ) % Nx ) + b )
-                            ) / 2 / Nx;
+                            NORB * ( Nx * y2 + abs(x2 - x1) ) + b ) +=
+                            SiSjZ( NORB * ( Nx * y1 + x1 ) + a ,
+                            NORB * ( Nx * y2 + x2 ) + b ) / 2 / Nx;
+
+                            spin_corr( NORB * y1 + a ,
+                            NORB * ( Nx * y2 + ( Nx - abs(x2 - x1) ) % Nx ) + b ) +=
+                            SiSjZ( NORB * ( Nx * y1 + x1 ) + a ,
+                            NORB * ( Nx * y2 + x2 ) + b ) / 2 / Nx;
                         }
-                    }
-                }
-            }
-        }
-    }
 
     int precision = 10;
     Eigen::IOFormat CleanFmt(precision, 0, ", ", "\n", "", "");
