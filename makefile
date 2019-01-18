@@ -38,6 +38,8 @@
 
 # Size of the system (orbital + real space)
 nsites=2
+#width of the ribbon
+ny=4
 # Trotter error
 dt_inv=16
 # Inverse temperature
@@ -51,7 +53,7 @@ source=main_equal_time
 
 # Set parameters of the simulation here.
 CXX = g++ -DNSITES=$(nsites) -DDT_INV=$(dt_inv) -DBETA=$(beta)\
- -DGREEN_AFRESH_FREQ=$(green_afresh_freq) -DVERBOSE=$(verbose)
+ -DGREEN_AFRESH_FREQ=$(green_afresh_freq) -DVERBOSE=$(verbose) -DNY=$(ny)
 
 include_dir=./includes
 
@@ -75,7 +77,7 @@ ifeq ($(verbose),1)
 	@echo ""
 	@echo "To run a simulation, simply type ./simulation followed by its arguments:"
 	@echo ""
-	@echo "./simulation <t> <U> <mu> <geom> <Ny>\
+	@echo "./simulation <t> <U> <mu> <geom>\
 	 <Total Number of Sweeps (Space-Time)>\
 	 <Number of Warm-up Sweeps (Space-Time)> \
 	 <Number of Auto-correlation Sweeps (Space-Time)>"
