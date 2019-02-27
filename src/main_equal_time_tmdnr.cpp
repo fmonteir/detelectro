@@ -446,7 +446,6 @@ int main(int argc, char **argv)
 
     //  INITIALIZE ARRAYS TO STORE MEASUREMENTS.
     double * weights = new double[W * L];
-    double * corrs = new double[totalMCSteps];
     double LOGweight = 0.;
 
     double electronDensities = 0;
@@ -541,13 +540,8 @@ int main(int argc, char **argv)
             {
                 //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
                 weights[sweep * L + l] = LOGweight;
-                corrs[sweep * L + l] = magCorrZZ(0, 3) * sign;
             }
-            if ( sweep >= W)
-            {
-                //  STORE WEIGHT OF ACCEPTED CONFIGURATIONS
-                corrs[sweep * L + l] = magCorrZZ(0, 3) * sign;
-            }
+
             //  STORE ELECTRON DENSITY, DOUBLE OCCUPANCY, AND SPIN-SPIN CORRELATIONS.
             electronDensity = 0.; doubleOc = 0.; energy = 0.;
             magCorrZZ = Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
@@ -741,7 +735,7 @@ int main(int argc, char **argv)
     // {
     write(meanSign, sweep, W, A, nEl, nUp_nDw,
       Hkin, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
-      geom, NY, weights, SiSjZ, corrs, totalMCSweeps);
+      geom, NY, weights, SiSjZ, totalMCSweeps);
     // }
 
     delete[] weights;

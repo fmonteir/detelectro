@@ -24,8 +24,9 @@ double matSqrt(double x) // element-wise square root of a matrix
 
 void write(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
   double Hkin, double U, int nSites, double dt, double beta, int L, double t,
-  double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights, Eigen::MatrixXd SiSjZ,
-  double * corrs, int totalMCSweeps)
+  double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights,
+  Eigen::MatrixXd SiSjZ, int totalMCSweeps)
+  //   double * corrs,
 {
     //  Normalize to mean sign
     nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign;
@@ -69,27 +70,27 @@ void write(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
     std::ofstream file1("temp-data/Log-weights.csv");
     std::ofstream file2("temp-data/MeasurementsScalars.csv");
     std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
-    std::ofstream file4("temp-data/corrs.csv");
+    // std::ofstream file4("temp-data/corrs.csv");
     if ( file1.is_open() and file2.is_open()
-     and file3.is_open() and file4.is_open() )
+     and file3.is_open() )
     {
         file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
-        file4 << std::left << std::setw(50) << "Correlation" << '\n';
+        // file4 << std::left << std::setw(50) << "Correlation" << '\n';
         for (int s = 0; s < W; s++)
         {
             for (int slice = 0; slice < L; slice++)
             {
                 file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
-                file4 << std::left << std::setw(50) << corrs[s * L + slice] << '\n';
+                // file4 << std::left << std::setw(50) << corrs[s * L + slice] << '\n';
             }
         }
-        for (int s = W; s < totalMCSweeps; s++)
-        {
-            for (int slice = 0; slice < L; slice++)
-            {
-                file4 << std::left << std::setw(50) << corrs[s * L + slice] << '\n';
-            }
-        }
+        // for (int s = W; s < totalMCSweeps; s++)
+        // {
+        //     for (int slice = 0; slice < L; slice++)
+        //     {
+        //         file4 << std::left << std::setw(50) << corrs[s * L + slice] << '\n';
+        //     }
+        // }
         file2 << std::left << std::setw(50) << "Electron density <n>,";
         file2 << std::left << std::setw(50) << std::setprecision(10)
         << nEl << '\n';
@@ -108,7 +109,7 @@ void write(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
     file1.close();
     file2.close();
     file3.close();
-    file4.close();
+    // file4.close();
 }
 
 void writeTMDNR(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,

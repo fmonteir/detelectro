@@ -198,7 +198,7 @@ int main(int argc, char **argv)
         }
         double params[] = {1.046, 2.104, -0.184, 0.401, 0.507, 0.218, 0.338, 0.057};
         K.setParamsThreeOrbitalTB(params);
-        double Delta = 0.2 / params[2];
+        double Delta = 0.3 / fabs(params[2]);
         K.tmdNanoribbonStrained(Ny, Delta);
         K.computeExponential(t, dt);
     }
