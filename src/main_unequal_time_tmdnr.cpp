@@ -441,6 +441,7 @@ int main(int argc, char **argv)
     // Gdown->computeGreenNaive(Bdown->list(), L - 1);
     Gup->storeVDU( Bup->list() ); Gdown->storeVDU( Bdown->list() );
     Gup->computeGreenFromVDU(); Gdown->computeGreenFromVDU();
+    Gup->initializeUneqs(); Gdown->initializeUneqs();
 
     //  INITIALIZE RANK-ONE UPDATE-RELATED QUANTITIES AND ACCEPTANCE RATIO.
     double alphaUp; double alphaDown; double dUp; double dDown; double accRatio;
@@ -454,6 +455,8 @@ int main(int argc, char **argv)
     double energies = 0;
     Eigen::MatrixXd magCorrZZs =
       Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
+    Eigen::MatrixXd uneqMagCorrZZs =
+      Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
 
     // double sign = std::copysign(1, Gup->matrix().determinant()
     //   * Gdown->matrix().determinant() );
@@ -464,11 +467,14 @@ int main(int argc, char **argv)
     double doubleOc;
     double energy;
     Eigen::MatrixXd magCorrZZ = Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
+    Eigen::MatrixXd uneqMagCorrZZ = Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
 
     double nEl = 0;
     double nUp_nDw = 0;
     double Hkin = 0;
     Eigen::MatrixXd SiSjZ =
+      Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
+    Eigen::MatrixXd intSiTSjZ =
       Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
 
     //  INITIALIZE (l, i) <- (0, 0). INITIATIALIZE SPATIAL SWEEP COUNTER.

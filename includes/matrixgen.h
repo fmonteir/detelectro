@@ -372,7 +372,7 @@ public:
     void tmdPBC();
     void tmdNanoribbon(int Ny); //  Ny = width of the ribbon
     void tmdNanoribbonStrained(int Ny, double Delta); //  Ny = width of the ribbon
-    Eigen::MatrixXd BpreFactor(double dt, double mu);
+    Eigen::MatrixXd BpreFactor(double dt, double mu, double spin, double mag_field);
     Geometry() : B(N, N), Hoppings(N, N) {
     };
 };
@@ -1431,9 +1431,11 @@ double Geometry<N>::get(int x, int y)
 }
 
 template<int N>
-Eigen::MatrixXd Geometry<N>::BpreFactor(double dt, double mu)
+Eigen::MatrixXd Geometry<N>::BpreFactor(double dt, double mu,
+                                        double spin, double mag_field)
 {
-    return exp(dt * mu) * B;
+    // add magnetic field via spin dependence
+    return exp(dt * (mu + spin * mag_field) ) * B;
 }
 
 template<int L, int N>

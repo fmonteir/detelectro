@@ -77,7 +77,7 @@ ifeq ($(verbose),1)
 	@echo ""
 	@echo "To run a simulation, simply type ./simulation followed by its arguments:"
 	@echo ""
-	@echo "./simulation <t> <U> <mu> <geom>\
+	@echo "./simulation <t> <U> <mu> <Bfield> <geom>\
 	 <Total Number of Sweeps (Space-Time)>\
 	 <Number of Warm-up Sweeps (Space-Time)> \
 	 <Number of Auto-correlation Sweeps (Space-Time)>"
