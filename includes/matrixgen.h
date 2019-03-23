@@ -112,6 +112,98 @@ void write(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
     // file4.close();
 }
 
+void writeUnequal(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
+  double Hkin, double U, int nSites, double dt, double beta, int L, double t,
+  double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights,
+  Eigen::MatrixXd SiSjZ, Eigen::MatrixXd intSiTSjZ, int totalMCSweeps)
+  //   double * corrs,
+{
+    //  Normalize to mean sign
+    nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign; intSiTSjZ /= meanSign;
+    Hkin /= meanSign;
+
+    int precision = 10;
+    Eigen::IOFormat CleanFmt(precision, 0, ", ", "\n", "", "");
+
+    if (VERBOSE == 1)
+    {
+        std::cout << "Writing results" << std::endl << std::endl;
+        std::cout << "<s>: " << meanSign << std::endl << std::endl;
+        std::cout << "ds / <s>: " << sqrt( 1 - pow(meanSign, 2) )
+         / sqrt( ( (sweep - W) / A - 1 ) ) / meanSign
+          << std::endl << std::endl;
+        std::cout << "nEl: " << nEl << std::endl << std::endl;
+        std::cout << "Hkin: " << Hkin << std::endl << std::endl;
+        std::cout << "U nUp_nDw: " << U * nUp_nDw << std::endl << std::endl;
+    }
+
+
+    //  SAVE OUTPUT.
+    std::ofstream file0("temp-data/simulationParameters.csv");
+    if (file0.is_open())
+    {
+      file0 << "Number of sites NSITES," << NSITES << '\n';
+      file0 << "Trotter Error dt," << dt << '\n';
+      file0 << "Inverse Temperature BETA," << BETA << '\n';
+      file0 << "Number of Imaginary-time Slices L," << L << '\n';
+      file0 << "Hopping Normalization t," << t << '\n';
+      file0 << "On-site interaction U," << U << '\n';
+      file0 << "mu," << mu << '\n';
+      file0 << "totalMCSweeps," << sweep << '\n';
+      file0 << "Frequency of recomputing G,"
+        << GREEN_AFRESH_FREQ << '\n';
+      file0 << "Number of multiplied Bs after stabilization," << Lbda << '\n';
+      file0 << "Geometry," << geom << '\n';
+      file0 << "Ny," << Ny << '\n';
+    } file0.close();
+    //  STORE MEASUREMENTS
+    std::ofstream file1("temp-data/Log-weights.csv");
+    std::ofstream file2("temp-data/MeasurementsScalars.csv");
+    std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
+    std::ofstream file4("temp-data/UneqTimeSzCorrelations.csv");
+    if ( file1.is_open() and file2.is_open()
+     and file3.is_open() and file4.is_open() )
+    {
+        file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
+        // file4 << std::left << std::setw(50) << "Correlation" << '\n';
+        for (int s = 0; s < W; s++)
+        {
+            for (int slice = 0; slice < L; slice++)
+            {
+                file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
+                // file4 << std::left << std::setw(50) << corrs[s * L + slice] << '\n';
+            }
+        }
+        // for (int s = W; s < totalMCSweeps; s++)
+        // {
+        //     for (int slice = 0; slice < L; slice++)
+        //     {
+        //         file4 << std::left << std::setw(50) << corrs[s * L + slice] << '\n';
+        //     }
+        // }
+        file2 << std::left << std::setw(50) << "Electron density <n>,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nEl << '\n';
+        file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nUp_nDw << '\n';
+        file2 << std::left << std::setw(50) << "Hkin,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << Hkin << '\n';
+        file2 << std::left << std::setw(50) << "Average sign,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << meanSign << '\n';
+        file3 << std::left << std::setw(50) << "<SiSj>" << '\n';
+        file3 << std::setprecision(10) << SiSjZ.format(CleanFmt) << '\n';
+        file4 << std::left << std::setw(50) << "int<SiTSj>" << '\n';
+        file4 << std::setprecision(10) << intSiTSjZ.format(CleanFmt) << '\n';
+    }
+    file1.close();
+    file2.close();
+    file3.close();
+    file4.close();
+}
+
 void writeTMDNR(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
   double Hkin, double U, int nSites, double dt, double beta, int L, double t,
   double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights, Eigen::MatrixXd SiSjZ,
@@ -371,6 +463,7 @@ public:
     void setParamsThreeOrbitalTB(double threeOrbitalTBparameters[8]);
     void tmdPBC();
     void tmdNanoribbon(int Ny); //  Ny = width of the ribbon
+    void tmdNanoribbonEuOsubstrate(int Ny);
     void tmdNanoribbonStrained(int Ny, double Delta); //  Ny = width of the ribbon
     Eigen::MatrixXd BpreFactor(double dt, double mu, double spin, double mag_field);
     Geometry() : B(N, N), Hoppings(N, N) {
@@ -1409,6 +1502,142 @@ void Geometry<N>::tmdNanoribbonStrained(int Ny, double Delta)
                         ( Nx * ( y + 1 ) + x - 1 ) * NORB,
                         ( Nx * y + x ) * NORB, NORB, NORB )
                         = Etwo - Delta / 4 * Eigen::Matrix<double, NORB, NORB>::Identity();
+                    }
+                }
+            }
+        }
+    }
+    B = - B;
+    Hoppings = B;
+}
+
+template<int N>
+void Geometry<N>::tmdNanoribbonEuOsubstrate(int Ny)
+{
+    B = Eigen::Matrix<double, N, N>::Zero();
+    int Nx = N / Ny / NORB;
+    for (int x = 0; x < Nx; x++)
+    {
+        for (int y = 0; y < Ny; y++)
+        {
+            //  Diagonal term
+
+            B.block(
+            ( Nx * y + x ) * NORB , ( Nx * y + x ) * NORB , NORB , NORB )
+            = Ezero;
+
+            //  E1
+
+            B.block(
+            ( Nx * y + x ) * NORB , ( Nx * y + ( (x + 1) % Nx ) ) * NORB , NORB , NORB )
+            = Eone;
+
+            //  E4
+
+            B.block(
+            ( Nx * y + ( (x + 1) % Nx ) ) * NORB , ( Nx * y + x ) * NORB , NORB , NORB )
+            = Efour;
+
+            if ( y == 0 )
+            {
+                B.block(
+                x * NORB , ( Nx + x ) * NORB , NORB , NORB )
+                = Esix;
+
+                B.block(
+                ( Nx + x ) * NORB , x * NORB , NORB , NORB )
+                = Ethree;
+
+                if ( x == 0 )
+                {
+                    B.block(
+                    x * NORB , ( Nx + (Nx - 1 ) ) * NORB , NORB , NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx + (Nx - 1 ) ) * NORB, x * NORB , NORB , NORB )
+                    = Etwo;
+                }
+                else
+                {
+                    B.block(
+                    x * NORB, ( Nx + ( x - 1 ) ) * NORB, NORB, NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx + ( x - 1 ) ) * NORB, x * NORB, NORB, NORB )
+                    = Etwo;
+                }
+            }
+            else
+            {
+                if ( y == Ny - 1 )
+                {
+                    B.block(
+                    ( Nx * ( Ny - 1 ) + x ) * NORB,
+                    ( Nx * ( Ny - 2 ) + ( x + 1 ) % Nx ) * NORB, NORB, NORB )
+                    = Etwo;
+
+                    B.block(
+                    ( Nx * ( Ny - 2 ) + ( x + 1 ) % Nx ) * NORB,
+                    ( Nx * ( Ny - 1 ) + x ) * NORB, NORB, NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx * ( Ny - 1 ) + x ) * NORB,
+                    ( Nx * ( Ny - 2 ) + x ) * NORB, NORB, NORB )
+                    = Ethree;
+
+                    B.block(
+                    ( Nx * ( Ny - 2 ) + x ) * NORB,
+                    ( Nx * ( Ny - 1 ) + x ) * NORB, NORB, NORB )
+                    = Esix;
+                }
+                else
+                {
+                    B.block(
+                    ( Nx * y + x ) * NORB,
+                    ( Nx * ( y - 1 ) + ( x + 1 ) % Nx ) * NORB, NORB, NORB )
+                    = Etwo;
+
+                    B.block(
+                    ( Nx * ( y - 1 ) + ( x + 1 ) % Nx ) * NORB,
+                    ( Nx * y + x ) * NORB, NORB, NORB )
+                    = Efive;
+
+                    B.block(
+                    ( Nx * y + x ) * NORB,
+                    ( Nx * ( y - 1 ) + x ) * NORB, NORB, NORB )
+                    = Ethree;
+
+                    B.block(
+                    ( Nx * ( y - 1 ) + x ) * NORB,
+                    ( Nx * y + x ) * NORB, NORB, NORB )
+                    = Esix;
+
+                    if ( x == 0 )
+                    {
+                        B.block(
+                        ( Nx * y + x ) * NORB,
+                        ( Nx * ( y + 1 ) + Nx - 1 ) * NORB, NORB, NORB )
+                        = Efive;
+
+                        B.block(
+                        ( Nx * ( y + 1 ) + Nx - 1 ) * NORB,
+                        ( Nx * y + x ) * NORB, NORB, NORB )
+                        = Etwo;
+                    }
+                    else
+                    {
+                        B.block(
+                        ( Nx * y + x ) * NORB,
+                        ( Nx * ( y + 1 ) + x - 1 ) * NORB, NORB, NORB )
+                        = Efive;
+
+                        B.block(
+                        ( Nx * ( y + 1 ) + x - 1 ) * NORB,
+                        ( Nx * y + x ) * NORB, NORB, NORB )
+                        = Etwo;
                     }
                 }
             }

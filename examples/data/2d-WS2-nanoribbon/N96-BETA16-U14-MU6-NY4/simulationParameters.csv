@@ -1,0 +1,12 @@
+Number of sites NSITES,96
+Trotter Error dt,0.125
+Inverse Temperature BETA,16
+Number of Imaginary-time Slices L,128
+Hopping Normalization t,1
+On-site interaction U,14
+mu,6
+totalMCSweeps,512
+Frequency of recomputing G,4
+Number of multiplied Bs after stabilization,32
+Geometry,16
+Ny,4

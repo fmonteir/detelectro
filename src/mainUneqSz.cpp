@@ -46,102 +46,6 @@
 #include "matrixgen.h"
 #include "green.h"
 
-void write(double meanSign, int sweep, int W, int A, double nElSq, double nEl,
-  double U, int nSites, double dt, double beta, int L, double t,
-  double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights,
-  Eigen::MatrixXd SiSjZ, Eigen::MatrixXd SiSjZSq, Eigen::MatrixXd intSiTSjZ,
-  Eigen::MatrixXd intSiTSjZSq)
-{
-    //  Normalize to mean sign
-    nEl /= meanSign; nElSq /= meanSign;
-    SiSjZ /= meanSign; SiSjZSq /= meanSign;
-    intSiTSjZ /= meanSign; intSiTSjZSq /= meanSign;
-
-    Eigen::IOFormat CleanFmt(10, 0, ", ", "\n", "", "");
-
-    if (VERBOSE == 1)
-    {
-        std::cout << "Writing results" << std::endl << std::endl;
-        std::cout << "ds / <s>: " << sqrt( 1 - pow(meanSign, 2) )
-         / sqrt( ( (sweep - W) / A - 1 ) ) / meanSign
-          << std::endl << std::endl;
-        std::cout << "nEl: " << nEl << " +- " <<
-         sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (sweep - W) / A - 1 ) )
-          << std::endl << std::endl;
-    }
-
-
-    //  SAVE OUTPUT.
-    std::ofstream file0("temp-data/simulationParameters.csv");
-    if (file0.is_open())
-    {
-      file0 << std::left << std::setw(50) << "Number of sites," << NSITES << '\n';
-      file0 << std::left << std::setw(50) << "dt," << dt << '\n';
-      file0 << std::left << std::setw(50) << "beta," << BETA << '\n';
-      file0 << std::left << std::setw(50) << "L," << L << '\n';
-      file0 << std::left << std::setw(50) << "t," << t << '\n';
-      file0 << std::left << std::setw(50) << "U," << U << '\n';
-      file0 << std::left << std::setw(50) << "mu," << mu << '\n';
-      file0 << std::left << std::setw(50) << "totalMCSweeps," << sweep << '\n';
-      file0 << std::left << std::setw(50) << "Frequency of recomputing G,"
-        << GREEN_AFRESH_FREQ << '\n';
-      file0 << std::left << std::setw(50)
-        << "Number of multiplied Bs after stabilization," << Lbda << '\n';
-      file0 << std::left << std::setw(50) << "Geometry," << geom << '\n';
-      file0 << std::left << std::setw(50) << "Ny," << Ny << '\n';
-    } file0.close();
-    //  STORE MEASUREMENTS
-    std::ofstream file1("temp-data/Log-weights.csv");
-    std::ofstream file2("temp-data/MeasurementsScalars.csv");
-    std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
-    std::ofstream file4("temp-data/EqTimeSzCorrelationsError.csv");
-    std::ofstream file5("temp-data/UneqTimeSzCorrelations.csv");
-    std::ofstream file6("temp-data/UneqTimeSzCorrelationsError.csv");
-    if ( file1.is_open() and file2.is_open() and file3.is_open()
-     and file4.is_open() and file5.is_open() and file6.is_open() )
-    {
-        file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
-        for (int s = 0; s < W; s++)
-        {
-            for (int slice = 0; slice < L; slice++)
-            {
-                file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
-            }
-        }
-        file2 << std::left << std::setw(50) << "Electron density <n>,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << nEl << '\n';
-        file2 << std::left << std::setw(50) << "d<n>,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( nElSq - pow(nEl, 2) ) / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
-        file2 << std::left << std::setw(50) << "Average sign,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << meanSign << '\n';
-        file2 << std::left << std::setw(50) << "d sign,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << sqrt( 1 - pow(meanSign, 2) ) / sqrt( ( (sweep - W) / A - 1 ) ) << '\n';
-        file3 << std::left << std::setw(50) << "<Sz_i Sz_j >" << '\n';
-        file3 << std::setprecision(20) << SiSjZ.format(CleanFmt) << '\n';
-        file4 << std::left << std::setw(50) << "d<Sz_i Sz_j >" << '\n';
-        file4 <<
-         std::setprecision(20) << ( ( SiSjZSq - SiSjZ.unaryExpr(&matSq) )
-         .unaryExpr(&matSqrt) / sqrt( ( (sweep - W) / A - 1 ) ) )
-         .format(CleanFmt) << '\n';
-        file5 << std::left << std::setw(50) << "int_0^beta dt <Sz_i (t) Sz_j (0) >" << '\n';
-        file5 << std::setprecision(10) << intSiTSjZ.format(CleanFmt) << '\n';
-        file6 << std::left << std::setw(50) << "d int_0^beta dt <Sz_i (t) Sz_j (0) >" << '\n';
-        file6 <<
-         std::setprecision(10) << ( ( intSiTSjZSq - intSiTSjZ.unaryExpr(&matSq) )
-         .unaryExpr(&matSqrt) / sqrt( (sweep - W) / A - 1 ) )
-         .format(CleanFmt) << '\n';
-    }
-    file1.close();
-    file2.close();
-    file3.close();
-    file4.close();
-    file5.close();
-    file6.close();
-}
 
 int main(int argc, char **argv)
 {
@@ -290,8 +194,8 @@ int main(int argc, char **argv)
       new OneParticlePropagators< NSITES, L >;
     OneParticlePropagators< NSITES, L > * Bdown=
       new OneParticlePropagators< NSITES, L >;
-    Bup->fillMatrices( true, nu, h->matrix(), K.BpreFactor(dt, mu) );
-    Bdown->fillMatrices( false, nu, h->matrix(), K.BpreFactor(dt, mu) );
+    Bup->fillMatrices( true, nu, h->matrix(), K.BpreFactor(dt, mu, 0, 0) );
+    Bdown->fillMatrices( false, nu, h->matrix(), K.BpreFactor(dt, mu, 0, 0) );
 
     //  GENERATE THE SPIN-UP AND SPIN-DOWN GREEN FUNCTIONS.
     Green< NSITES, L, Lbda> * Gup = new Green< NSITES, L, Lbda>;
@@ -330,12 +234,6 @@ int main(int argc, char **argv)
     Eigen::MatrixXd SiSjZ =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
     Eigen::MatrixXd intSiTSjZ =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-
-    double nElSq = 0;
-    Eigen::MatrixXd SiSjZSq =
-      Eigen::Matrix<double, NSITES, NSITES>::Zero();
-    Eigen::MatrixXd intSiTSjZSq =
       Eigen::Matrix<double, NSITES, NSITES>::Zero();
 
 
@@ -522,12 +420,6 @@ int main(int argc, char **argv)
                        / ( (sweep - W)/A + 1 ) ;
                       intSiTSjZ += ( uneqMagCorrZZs * BETA - intSiTSjZ )
                        / ( (sweep - W)/A + 1 ) ;
-                      nElSq += ( pow(electronDensities, 2) - nElSq )
-                       / ( (sweep - W)/A + 1 ) ;
-                      SiSjZSq += ( magCorrZZs.unaryExpr(&matSq) - SiSjZSq )
-                       / ( (sweep - W)/A + 1 ) ;
-                      intSiTSjZSq += ( ( BETA * uneqMagCorrZZs).unaryExpr(&matSq)  - intSiTSjZSq )
-                       / ( (sweep - W)/A + 1 ) ;
                     }
                     electronDensities = 0.;
                     magCorrZZs = Eigen::Matrix<double, NSITES, NSITES>::Zero();
@@ -540,9 +432,10 @@ int main(int argc, char **argv)
         }
     }   //  END OF MC LOOP.
 
-    write(meanSign, sweep, W, A, nElSq, nEl, U, NSITES, dt, BETA, L, t, mu,
-       GREEN_AFRESH_FREQ, Lbda, geom, Ny, weights, SiSjZ, SiSjZSq, intSiTSjZ,
-       intSiTSjZSq);
+    writeUnequal(meanSign, sweep, W, A, nEl, 0,
+      0, U, NSITES, dt, BETA, L, t,
+      mu, GREEN_AFRESH_FREQ, Lbda, geom, Ny, weights,
+      SiSjZ, intSiTSjZ, totalMCSweeps);
 
     delete[] weights;
     delete Gup; delete Gdown; delete h; delete Bup; delete Bdown;

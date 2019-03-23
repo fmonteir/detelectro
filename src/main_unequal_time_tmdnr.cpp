@@ -561,7 +561,6 @@ int main(int argc, char **argv)
                                 {
                                     if ( NORB * ( NX * y1 + x1 ) + a == NORB * ( NX * y2 + x2 ) + b )
                                     {
-
                                         electronDensity -= ( Gup->get(NORB * ( NX * y1 + x1 ) + a ,
                                         NORB * ( NX * y2 + x2 ) + b) + Gdown->get(NORB * ( NX * y1 + x1 ) + a ,
                                         NORB * ( NX * y2 + x2 ) + b) );
@@ -598,6 +597,87 @@ int main(int argc, char **argv)
                                         NORB * ( NX * y2 + x2 ) + b)
                                         * Gdown->get(NORB * ( NX * y1 + x1 ) + a ,
                                         NORB * ( NX * y2 + x2 ) + b) ) / 2 / NX;
+
+                                        if (l == 0)
+                                        {
+                                            uneqMagCorrZZ( NORB * y1 + a ,
+                                            NORB * ( NX * y2 + abs(x2 - x1) ) + b ) =
+                                            ( Gup->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                            NORB * ( NX * y2 + x2 ) + b)
+                                            + Gdown->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                            NORB * ( NX * y2 + x2 ) + b)
+                                            - 2 * Gup->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                            NORB * ( NX * y2 + x2 ) + b)
+                                            * Gdown->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                            NORB * ( NX * y2 + x2 ) + b) ) / 2 / NX;
+
+                                            uneqMagCorrZZ( NORB * y1 + a ,
+                                            NORB * ( NX * y2 + ( NX - abs(x2 - x1) ) % NX ) + b ) =
+                                            ( Gup->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                            NORB * ( NX * y2 + x2 ) + b)
+                                            + Gdown->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                            NORB * ( NX * y2 + x2 ) + b)
+                                            - 2 * Gup->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                            NORB * ( NX * y2 + x2 ) + b)
+                                            * Gdown->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                            NORB * ( NX * y2 + x2 ) + b) ) / 2 / NX;
+                                        }
+                                        else
+                                        {
+                                            uneqMagCorrZZ( NORB * y1 + a ,
+                                            NORB * ( NX * y2 + abs(x2 - x1) ) + b ) =
+                                            ( 1 - Gup->get(NORB * ( NX * y1 + x1 ) + a ,
+                                            NORB * ( NX * y2 + x2 ) + b) )
+                                          * ( 1 - Gup->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          - ( 1 - Gup->get(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          * ( 1 - Gdown->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          - ( 1 - Gdown->get(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          * ( 1 - Gup->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          + ( 1 - Gdown->get(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          * ( 1 - Gdown->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          - Gup->uneqBackward(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b)
+                                          * Gup->uneqForward(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b)
+                                          - Gdown->uneqBackward(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b)
+                                          * Gdown->uneqForward(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b);
+
+                                              uneqMagCorrZZ( NORB * y1 + a ,
+                                              NORB * ( NX * y2 + ( NX - abs(x2 - x1) ) % NX ) + b ) =
+                                            ( 1 - Gup->get(NORB * ( NX * y1 + x1 ) + a ,
+                                            NORB * ( NX * y2 + x2 ) + b) )
+                                          * ( 1 - Gup->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          - ( 1 - Gup->get(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          * ( 1 - Gdown->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          - ( 1 - Gdown->get(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          * ( 1 - Gup->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          + ( 1 - Gdown->get(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          * ( 1 - Gdown->zero(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b) )
+                                          - Gup->uneqBackward(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b)
+                                          * Gup->uneqForward(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b)
+                                          - Gdown->uneqBackward(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b)
+                                          * Gdown->uneqForward(NORB * ( NX * y1 + x1 ) + a ,
+                                          NORB * ( NX * y2 + x2 ) + b);
+                                        }
                                     }
                                     else
                                     {
@@ -645,6 +725,71 @@ int main(int argc, char **argv)
                                         NORB * ( NX * y1 + x1 ) + a) * Gdown->get(NORB * ( NX * y1 + x1 ) + a ,
                                         NORB * ( NX * y2 + x2 ) + b) ) / 2 / NX;
 
+                                        if (l == 0)
+                                        {
+                                            uneqMagCorrZZ( NORB * y1 + a ,
+                                            NORB * ( NX * y2 + abs(x2 - x1) ) + b ) =
+                                              - ( 1 - Gup->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                              * ( 1 - Gdown->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                              - ( 1 - Gdown->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                              * ( 1 - Gup->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                              + ( 1 - Gup->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                              * ( 1 - Gup->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                              + ( 1 - Gdown->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                              * ( 1 - Gdown->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                              + ( 1 - Gup->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y1 + x1 ) + a) )
+                                              * Gup->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y2 + x2 ) + b)
+                                              + ( 1 - Gdown->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y1 + x1 ) + a) )
+                                              * Gdown->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y2 + x2 ) + b);
+
+                                            uneqMagCorrZZ( NORB * y1 + a ,
+                                            NORB * ( NX * y2 + ( NX - abs(x2 - x1) ) % NX ) + b ) =
+                                              - ( 1 - Gup->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                              * ( 1 - Gdown->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                              - ( 1 - Gdown->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                              * ( 1 - Gup->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                              + ( 1 - Gup->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                              * ( 1 - Gup->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                              + ( 1 - Gdown->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                              * ( 1 - Gdown->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                              + ( 1 - Gup->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y1 + x1 ) + a) )
+                                              * Gup->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y2 + x2 ) + b)
+                                              + ( 1 - Gdown->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y1 + x1 ) + a) )
+                                              * Gdown->zero(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y2 + x2 ) + b);
+                                        }
+                                        else
+                                        {
+                                            uneqMagCorrZZ( NORB * y1 + a ,
+                                            NORB * ( NX * y2 + abs(x2 - x1) ) + b ) =
+                                              ( 1 - Gup->get(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                              * ( 1 - Gup->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                            - ( 1 - Gup->get(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                            * ( 1 - Gdown->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                            - ( 1 - Gdown->get(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                            * ( 1 - Gup->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                            + ( 1 - Gdown->get(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                            * ( 1 - Gdown->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                            - Gup->uneqBackward(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y1 + x1 ) + a)
+                                            * Gup->uneqForward(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y2 + x2 ) + b)
+                                            - Gdown->uneqBackward(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y1 + x1 ) + a)
+                                            * Gdown->uneqForward(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y2 + x2 ) + b);
+
+                                            uneqMagCorrZZ( NORB * y1 + a ,
+                                            NORB * ( NX * y2 + ( NX - abs(x2 - x1) ) % NX ) + b ) =
+                                              ( 1 - Gup->get(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                              * ( 1 - Gup->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                            - ( 1 - Gup->get(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                            * ( 1 - Gdown->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                            - ( 1 - Gdown->get(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                            * ( 1 - Gup->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                            + ( 1 - Gdown->get(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y1 + x1 ) + a) )
+                                            * ( 1 - Gdown->zero(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y2 + x2 ) + b) )
+                                            - Gup->uneqBackward(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y1 + x1 ) + a)
+                                            * Gup->uneqForward(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y2 + x2 ) + b)
+                                            - Gdown->uneqBackward(NORB * ( NX * y2 + x2 ) + b, NORB * ( NX * y1 + x1 ) + a)
+                                            * Gdown->uneqForward(NORB * ( NX * y1 + x1 ) + a, NORB * ( NX * y2 + x2 ) + b);
+                                        }
+
                                     }
                                 }
             electronDensity /= NSITES; electronDensity += 2;
@@ -657,6 +802,8 @@ int main(int argc, char **argv)
               ( doubleOc * sign - doubleOcs ) / ( l + 1 ) ;
             magCorrZZs +=
               (magCorrZZ * sign - magCorrZZs ) / ( l + 1 );
+            uneqMagCorrZZs +=
+              (uneqMagCorrZZ * sign - uneqMagCorrZZs ) / ( l + 1 );
             energies +=
               ( energy * sign - energies ) / ( l + 1 ) ;
 
@@ -678,15 +825,16 @@ int main(int argc, char **argv)
                 {
                     Gup->storeUDV(Bup->list(), l, GREEN_AFRESH_FREQ);
                     Gdown->storeUDV(Bdown->list(), l, GREEN_AFRESH_FREQ);
-                    //  This is the standard way described in
-                    //  "Stable simulations of models of interacting electrons"
-                    Gup->computeStableGreen(l, GREEN_AFRESH_FREQ);
-                    Gdown->computeStableGreen(l, GREEN_AFRESH_FREQ);
+                    //  Using the BlockOfGreens Method, we can obtain
+                    //  time-displaced Green's as well
+                    Gup->computeBlockOfGreens(l, GREEN_AFRESH_FREQ);
+                    Gdown->computeBlockOfGreens(l, GREEN_AFRESH_FREQ);
                 }
                 else
                 {
                     Gup->storeVDU( Bup->list() ); Gdown->storeVDU( Bdown->list() );
                     Gup->computeGreenFromVDU(); Gdown->computeGreenFromVDU();
+                    Gup->initializeUneqs(); Gdown->initializeUneqs();
                 }
                 latticeSweepUntilAfresh = 0;
             }
@@ -711,14 +859,16 @@ int main(int argc, char **argv)
                        / ( (sweep - W)/A + 1 ) ;
                       SiSjZ += ( magCorrZZs - SiSjZ )
                        / ( (sweep - W)/A + 1 ) ;
+                      intSiTSjZ += ( BETA * uneqMagCorrZZs - intSiTSjZ )
+                       / ( (sweep - W)/A + 1 ) ;
                       Hkin += ( energies - Hkin )
                        / ( (sweep - W)/A + 1 ) ;
 
                     }
                     electronDensities = 0.; doubleOcs = 0.;
                     magCorrZZs = Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
+                    uneqMagCorrZZs = Eigen::Matrix<double, NORB * NY, NSITES>::Zero();
                     energies = 0.;
-
                 }
                 //  MOVE SWEEP COUNTER
                 sweep += 1;
@@ -740,9 +890,9 @@ int main(int argc, char **argv)
     // }
     // else
     // {
-    write(meanSign, sweep, W, A, nEl, nUp_nDw,
+    writeUnequal(meanSign, sweep, W, A, nEl, nUp_nDw,
       Hkin, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
-      geom, NY, weights, SiSjZ, totalMCSweeps);
+      geom, NY, weights, SiSjZ, intSiTSjZ, totalMCSweeps);
     // }
 
     delete[] weights;
