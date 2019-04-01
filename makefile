@@ -53,7 +53,8 @@ source=main_equal_time
 
 # Set parameters of the simulation here.
 CXX = g++ -DNSITES=$(nsites) -DDT_INV=$(dt_inv) -DBETA=$(beta)\
- -DGREEN_AFRESH_FREQ=$(green_afresh_freq) -DVERBOSE=$(verbose) -DNY=$(ny)
+ -DGREEN_AFRESH_FREQ=$(green_afresh_freq) -DVERBOSE=$(verbose) -DNY=$(ny)\
+ -DEIGEN_DONT_PARALLELIZE
 
 include_dir=./includes
 
