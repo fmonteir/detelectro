@@ -112,6 +112,77 @@ void write(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
     // file4.close();
 }
 
+void writeTMDNR(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
+  double Hkin, double U, int nSites, double dt, double beta, int L, double t,
+  double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights,
+  Eigen::MatrixXd SiSjZ, int totalMCSweeps)
+  //   double * corrs,
+{
+    //  Normalize to mean sign
+    nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign;
+    Hkin /= meanSign;
+
+    int precision = 10;
+    Eigen::IOFormat CleanFmt(precision, 0, ", ", "\n", "", "");
+
+    if (VERBOSE == 1)
+    {
+        std::cout << "Writing results" << std::endl << std::endl;
+        std::cout << "<s>: " << meanSign << std::endl << std::endl;
+        std::cout << "ds / <s>: " << sqrt( 1 - pow(meanSign, 2) )
+         / sqrt( ( (sweep - W) / A - 1 ) ) / meanSign
+          << std::endl << std::endl;
+        std::cout << "nEl: " << nEl << std::endl << std::endl;
+        std::cout << "Hkin: " << Hkin << std::endl << std::endl;
+        std::cout << "U nUp_nDw: " << U * nUp_nDw << std::endl << std::endl;
+    }
+
+    //  STORE MEASUREMENTS
+    std::ofstream file1("temp-data/Log-weights.csv");
+    std::ofstream file2("temp-data/MeasurementsScalars.csv");
+    std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
+    // std::ofstream file4("temp-data/corrs.csv");
+    if ( file1.is_open() and file2.is_open()
+     and file3.is_open() )
+    {
+        file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
+        // file4 << std::left << std::setw(50) << "Correlation" << '\n';
+        for (int s = 0; s < W; s++)
+        {
+            for (int slice = 0; slice < L; slice++)
+            {
+                file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
+                // file4 << std::left << std::setw(50) << corrs[s * L + slice] << '\n';
+            }
+        }
+        // for (int s = W; s < totalMCSweeps; s++)
+        // {
+        //     for (int slice = 0; slice < L; slice++)
+        //     {
+        //         file4 << std::left << std::setw(50) << corrs[s * L + slice] << '\n';
+        //     }
+        // }
+        file2 << std::left << std::setw(50) << "Electron density <n>,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nEl << '\n';
+        file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << nUp_nDw << '\n';
+        file2 << std::left << std::setw(50) << "Hkin,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << Hkin << '\n';
+        file2 << std::left << std::setw(50) << "Average sign,";
+        file2 << std::left << std::setw(50) << std::setprecision(10)
+        << meanSign << '\n';
+        file3 << std::left << std::setw(50) << "<SiSj>" << '\n';
+        file3 << std::setprecision(10) << SiSjZ.format(CleanFmt) << '\n';
+    }
+    file1.close();
+    file2.close();
+    file3.close();
+    // file4.close();
+}
+
 void writeUnequal(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
   double Hkin, double U, int nSites, double dt, double beta, int L, double t,
   double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights,
@@ -197,118 +268,6 @@ void writeUnequal(double meanSign, int sweep, int W, int A, double nEl, double n
         file3 << std::setprecision(10) << SiSjZ.format(CleanFmt) << '\n';
         file4 << std::left << std::setw(50) << "int<SiTSj>" << '\n';
         file4 << std::setprecision(10) << intSiTSjZ.format(CleanFmt) << '\n';
-    }
-    file1.close();
-    file2.close();
-    file3.close();
-    file4.close();
-}
-
-void writeTMDNR(double meanSign, int sweep, int W, int A, double nEl, double nUp_nDw,
-  double Hkin, double U, int nSites, double dt, double beta, int L, double t,
-  double mu, int green_afresh_freq, int Lbda, int geom, int Ny, double * weights, Eigen::MatrixXd SiSjZ,
-double * corrs, int totalMCSweeps)
-{
-    //  Normalize to mean sign
-    nEl /= meanSign; nUp_nDw /= meanSign; SiSjZ /= meanSign;
-    Hkin /= meanSign;
-
-    int Nx = nSites / Ny / NORB;
-    Eigen::MatrixXd spin_corr;
-    spin_corr = Eigen::MatrixXd::Zero(Ny * NORB, nSites);
-
-    for (int a = 0; a < NORB; a++)
-        for (int x1 = 0; x1 < Nx; x1++)
-            for (int y1 = 0; y1 < Ny; y1++)
-                for (int b = 0; b < NORB; b++)
-                    for (int x2 = 0; x2 < Nx; x2++)
-                        for (int y2 = 0; y2 < Ny; y2++)
-                        {
-                            spin_corr( NORB * y1 + a ,
-                            NORB * ( Nx * y2 + abs(x2 - x1) ) + b ) +=
-                            SiSjZ( NORB * ( Nx * y1 + x1 ) + a ,
-                            NORB * ( Nx * y2 + x2 ) + b ) / 2 / Nx;
-
-                            spin_corr( NORB * y1 + a ,
-                            NORB * ( Nx * y2 + ( Nx - abs(x2 - x1) ) % Nx ) + b ) +=
-                            SiSjZ( NORB * ( Nx * y1 + x1 ) + a ,
-                            NORB * ( Nx * y2 + x2 ) + b ) / 2 / Nx;
-                        }
-
-    int precision = 10;
-    Eigen::IOFormat CleanFmt(precision, 0, ", ", "\n", "", "");
-
-    if (VERBOSE == 1)
-    {
-        std::cout << "Writing results" << std::endl << std::endl;
-        std::cout << "<s>: " << meanSign << std::endl << std::endl;
-        std::cout << "ds / <s>: " << sqrt( 1 - pow(meanSign, 2) )
-         / sqrt( ( (sweep - W) / A - 1 ) ) / meanSign
-          << std::endl << std::endl;
-        std::cout << "nEl: " << nEl << std::endl << std::endl;
-        std::cout << "Hkin: " << Hkin << std::endl << std::endl;
-        std::cout << "U nUp_nDw: " << U * nUp_nDw << std::endl << std::endl;
-    }
-
-
-    //  SAVE OUTPUT.
-    std::ofstream file0("temp-data/simulationParameters.csv");
-    if (file0.is_open())
-    {
-      file0 << "Number of sites NSITES," << NSITES << '\n';
-      file0 << "Trotter Error dt," << dt << '\n';
-      file0 << "Inverse Temperature BETA," << BETA << '\n';
-      file0 << "Number of Imaginary-time Slices L," << L << '\n';
-      file0 << "Hopping Normalization t," << t << '\n';
-      file0 << "On-site interaction U," << U << '\n';
-      file0 << "mu," << mu << '\n';
-      file0 << "totalMCSweeps," << sweep << '\n';
-      file0 << "Frequency of recomputing G,"
-        << GREEN_AFRESH_FREQ << '\n';
-      file0 << "Number of multiplied Bs after stabilization," << Lbda << '\n';
-      file0 << "Geometry," << geom << '\n';
-      file0 << "Ny," << Ny << '\n';
-    } file0.close();
-    //  STORE MEASUREMENTS
-    std::ofstream file1("temp-data/Log-weights.csv");
-    std::ofstream file2("temp-data/MeasurementsScalars.csv");
-    std::ofstream file3("temp-data/EqTimeSzCorrelations.csv");
-    std::ofstream file4("temp-data/corrs.csv");
-    if ( file1.is_open() and file2.is_open()
-     and file3.is_open() and file4.is_open() )
-    {
-        file1 << std::left << std::setw(50) << "Configuration log weight" << '\n';
-        file4 << std::left << std::setw(50) << "Correlation" << '\n';
-        for (int s = 0; s < W; s++)
-        {
-            for (int slice = 0; slice < L; slice++)
-            {
-                file1 << std::left << std::setw(50) << weights[s * L + slice] << '\n';
-                file4 << std::left << std::setw(50) << corrs[s * L + slice] << '\n';
-            }
-        }
-        for (int s = W; s < totalMCSweeps; s++)
-        {
-            for (int slice = 0; slice < L; slice++)
-            {
-                file4 << std::left << std::setw(50) << corrs[s * L + slice] << '\n';
-            }
-        }
-        file2 << std::left << std::setw(50) << "Electron density <n>,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << nEl << '\n';
-        file2 << std::left << std::setw(50) << "Double occupancy <n+ n->,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << nUp_nDw << '\n';
-        file2 << std::left << std::setw(50) << "Hkin,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << Hkin << '\n';
-        file2 << std::left << std::setw(50) << "Average sign,";
-        file2 << std::left << std::setw(50) << std::setprecision(10)
-        << meanSign << '\n';
-        file3 << std::left << std::setw(50) << "<SiSj>" << '\n';
-        file3 << std::setprecision(precision)
-        << spin_corr.format(CleanFmt) << '\n';
     }
     file1.close();
     file2.close();

@@ -1,5 +1,5 @@
 //
-//  main_equal_time.cpp
+//  main_equal_time_tmdnr.cpp
 //
 //
 //  Created by Francisco Brito on 18/10/2018.
@@ -734,7 +734,7 @@ int main(int argc, char **argv)
     // }
     // else
     // {
-    write(meanSign, sweep, W, A, nEl, nUp_nDw,
+    writeTMDNR(meanSign, sweep, W, A, nEl, nUp_nDw,
       Hkin, U, NSITES, dt, BETA, L, t, mu, GREEN_AFRESH_FREQ, Lbda,
       geom, NY, weights, SiSjZ, totalMCSweeps);
     // }
